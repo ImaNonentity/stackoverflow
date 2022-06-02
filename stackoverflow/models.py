@@ -48,7 +48,6 @@ class Question(models.Model):
         updated_at = {self.updated_at};
         tags = {self.tags};
         likes = {self.likes};
-        votes = {self.votes}
         """
 
 
@@ -69,7 +68,6 @@ class Answer(models.Model):
         created_at = {self.created_at};
         updated_at = {self.updated_at};
         likes = {self.likes};
-        votes = {self.votes}
         """
 
 
@@ -94,7 +92,8 @@ class Votes(models.Model):
     username = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     answer = models.ForeignKey(Answer, on_delete=models.CASCADE)
-    type = models.CharField(max_length=50, choices=rating_type)
+    type = models.\
+        CharField(max_length=50, choices=rating_type)
     created_at = models.DateTimeField(auto_now=True)
     updated_at = models.DateTimeField(auto_now_add=True)
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
