@@ -8,6 +8,7 @@ from django.contrib.contenttypes.models import ContentType
 class User(models.Model):
     id = models.BigAutoField(primary_key=True)
     nickname = models.CharField(max_length=200, unique=True)
+    birth_date = models.DateField(null=True, blank=True)
     avatar = models.ImageField()
     email = models.CharField(max_length=200, unique=True)
     password = models.CharField(max_length=200)
