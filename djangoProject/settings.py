@@ -78,8 +78,6 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'stackoverflow',
-        'USER': 'admin',
-        'PASSWORD': 'admin',
         'HOST': 'localhost',
         'PORT': '',
     }
