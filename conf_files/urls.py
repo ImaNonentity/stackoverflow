@@ -18,22 +18,7 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include("stackoverflow.urls")),
-    # path('', include("api.urls")),
-    # path('', include("social.urls")),
-    # path('', include('user_profile.urls')),
-
-    # REST FRAMEWORK URLS
-    path('', include("api.urls")),
-    # path('api/questions/', include('api.urls')),
-    # path('api/overview/', include('api.urls')),
-    # path('question-list/', include('api.urls'), 'question-list'),
-    # path('question-detail/<str:pk>/', include('api.urls'), 'question-detail'),
-    # path('question-create/', include('api.urls'), 'question-create'),
-    #
-    # path('question-update/<str:pk>/', include('api.urls'), 'question-update'),
-    # path('question-delete/<str:pk>/', include('api.urls'), 'question-delete'),
-    #
-    # path('user_profile-profile/<str:pk>', include('api.urls'), 'detail')
-
+    path('', include('stackoverflow.urls')),
+    path('stackoverflow/user/', include('user_profile.urls')),
+    path('', include('api.urls')),
 ]

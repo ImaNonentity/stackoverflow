@@ -32,9 +32,9 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     # my apps
-    'stackoverflow',
-    'user_profile',
-    'social',
+    'stackoverflow.apps.StackoverflowConfig',
+    'user_profile.apps.UserProfileConfig',
+    'social.apps.SocialConfig',
 
     # Django apps
     'django.contrib.admin',
@@ -43,9 +43,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # 'stackoverflow.apps.StackoverflowConfig',
 
     'rest_framework',
+    'knox',
 ]
 
 MIDDLEWARE = [
@@ -58,7 +58,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'conf_files.urls'
+ROOT_URLCONF = ['conf_files.urls', 'api.urls']
 
 TEMPLATES = [
     {
@@ -75,6 +75,8 @@ TEMPLATES = [
         },
     },
 ]
+
+AUTH_USER_MODEL = 'user_profile.User'
 
 WSGI_APPLICATION = 'conf_files.wsgi.application'
 
@@ -132,14 +134,16 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-AUTH_USER_MODEL = 'user_profile.User'
 
 
 
 
-# REST_FRAMEWORK = {
-#     'DEFAULT_PERMISSION_CLASSES': [
-#         'rest_framework.permissions.IsAuthenticated',
-#     ]
-# }
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        # 'rest_framework.authentication.BasicAuthentication',
+        # 'rest_framework.authentication.SessionAuthentication',
+        'knox.auth.TokenAuthentication',
+    ]
+}
 

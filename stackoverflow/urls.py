@@ -7,5 +7,4 @@ app_name = 'stackoverflow'
 
 urlpatterns = [
     path('', home_screen_view, name='home'),
-    path('', include('api.urls')),
 ]

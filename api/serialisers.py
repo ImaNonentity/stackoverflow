@@ -3,12 +3,6 @@ from user_profile.models import User
 from social.models import Tag, Question, Answer, Comment, Votes
 
 
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = '__all__'
-
-
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model: Tag
