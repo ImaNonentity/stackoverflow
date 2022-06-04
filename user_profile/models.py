@@ -16,7 +16,9 @@ class User(AbstractUser):
     rating = models.SmallIntegerField(default=0, null=True, blank=True)
     slug = models.SlugField(blank=True, null=True, unique=True)
 
+    def __str__(self):
+        return self.email
 
- def get_absolute_url(self):
+    def get_absolute_url(self):
         return reverse("user_detail", kwargs={"slug": self.slug})
 

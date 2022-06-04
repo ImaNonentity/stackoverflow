@@ -4,10 +4,11 @@ from rest_framework.decorators import api_view
 
 from user_profile.models import User
 from social.models import Question, Answer, Comment, Tag
-from api.serialisers import UserSerializer, QuestionSerializer
+from api.serialisers import QuestionSerializer
+from user_profile.serializers import UserSerializer
 
 
-#USER VIEW
+# USER VIEW
 
 @api_view(['GET'])
 def api_detail_user_view(request, pk):
@@ -22,9 +23,9 @@ def api_detail_user_view(request, pk):
 
 
 @api_view(['PUT'])
-def api_update_user_view(request, pk):
+def api_update_user_view(request, id):
     try:
-        user = User.objects.get(id=pk)
+        user = User.objects.get(id=id)
     except User.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -39,9 +40,9 @@ def api_update_user_view(request, pk):
 
 
 @api_view(['DELETE'])
-def api_delete_user_view(request, pk):
+def api_delete_user_view(request, id):
     try:
-        user = User.objects.get(id=pk)
+        user = User.objects.get(id=id)
     except User.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -59,9 +60,9 @@ def api_delete_user_view(request, pk):
 # QUESTION VIEWS
 
 @api_view(['GET'])
-def api_detail_question_view(request, pk):
+def api_detail_question_view(request, id):
     try:
-        question = Question.objects.get(id=pk)
+        question = Question.objects.get(id=id)
     except Question.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -71,9 +72,9 @@ def api_detail_question_view(request, pk):
 
 
 @api_view(['PUT'])
-def api_update_question_view(request, pk):
+def api_update_question_view(request, id):
     try:
-        question = Question.objects.get(id=pk)
+        question = Question.objects.get(id=id)
     except Question.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -88,9 +89,9 @@ def api_update_question_view(request, pk):
 
 
 @api_view(['DELETE'])
-def api_delete_question_view(request, pk):
+def api_delete_question_view(request, id):
     try:
-        question = Question.objects.get(id=pk)
+        question = Question.objects.get(id=id)
     except Question.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -105,9 +106,9 @@ def api_delete_question_view(request, pk):
 
 
 @api_view(['POST'])
-def api_create_question_view(request, pk):
+def api_create_question_view(request, id):
 
-    account = User.objects.get(pk)
+    account = User.objects.get(id=id)
 
     question = Question(username=account)
 
