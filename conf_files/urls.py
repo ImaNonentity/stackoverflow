@@ -15,9 +15,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+# from rest_framework_swagger.views import get_swagger_view
+
+# schema_view = get_swagger_view(title='Pastebin API')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    # path('ui', schema_view),
     # path('', include('stackoverflow.urls')),
     path('', include('user_profile.urls')),
     path('', include('api.urls')),
