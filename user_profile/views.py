@@ -20,9 +20,9 @@ from .models import User
 
 # USER VIEWS
 @api_view(['GET'])
-def api_detail_user_view(request, pk):
+def api_detail_user_view(request, id):
     try:
-        user = User.objects.get(id=pk)
+        user = User.objects.get(id=id)
     except User.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
