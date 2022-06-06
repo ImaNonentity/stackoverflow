@@ -25,11 +25,12 @@ class Question(models.Model):
     content = models.TextField(max_length=1000, null=True, blank=True)
     created_at = models.DateTimeField(auto_now=True, verbose_name='Asked')
     updated_at = models.DateTimeField(auto_now_add=True, verbose_name='Modified')
-    tags = models.ManyToManyField(Tag, verbose_name='User`s tag(s)')
+    tags = models.ManyToManyField(Tag, verbose_name='User`s tag(s)', blank=True)
     # likes = models.IntegerField(default=0)
 
     def __str__(self):
-        return self.title
+        save = '{0.title}, id={0.id}'
+        return save.format(self)
 
     class Meta:
         verbose_name = "Questions"
@@ -40,13 +41,13 @@ class Answer(models.Model):
     id = models.BigAutoField(primary_key=True)
     username = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
-    content = models.TextField(null=True, blank=True)
+    content = models.TextField(max_length=2000, null=True, blank=True)
     created_at = models.DateTimeField(auto_now=True, verbose_name='answered')
     updated_at = models.DateTimeField(auto_now_add=True, verbose_name='edited')
     # likes = models.IntegerField(default=0)
 
     def __str__(self):
-        return self.content[:40]
+        return f'{self.content[:35]}, id={self.id}'
 
     class Meta:
         verbose_name = "Answers"
@@ -56,8 +57,6 @@ class Answer(models.Model):
 class Comment(models.Model):
     id = models.BigAutoField(primary_key=True)
     username = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
-    answer = models.ForeignKey(Answer, on_delete=models.CASCADE)
-    question = models.ForeignKey(Question, on_delete=models.CASCADE)
     content = models.TextField(max_length=1000, null=True, blank=True)
     # likes = models.IntegerField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now=True, verbose_name='answered')
@@ -67,7 +66,7 @@ class Comment(models.Model):
     content_object = GenericForeignKey('content_type', 'object_id')
 
     def __str__(self):
-        return self.content[:40]
+        return f'{self.content[:40]}, id={self.id}'
 
     class Meta:
         verbose_name = "Comments"

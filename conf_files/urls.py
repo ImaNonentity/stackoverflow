@@ -24,5 +24,6 @@ urlpatterns = [
     # path('ui', schema_view),
     # path('', include('stackoverflow.urls')),
     path('', include('user_profile.urls')),
-    path('', include('api.urls')),
+    path('', include('social.urls'))
+    # path('', include('api.urls')),
 ]

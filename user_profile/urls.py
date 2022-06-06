@@ -4,14 +4,27 @@
 
 from django.urls import path
 from .views import registration_view
-from rest_framework.authtoken.views import obtain_auth_token
+from .views import (
+    api_detail_user_view,
+    api_update_user_view,
+    api_delete_user_view,
+    ObtainAuthTokenView,
+)
+# from rest_framework.authtoken.views import obtain_auth_token
+
 
 urlpatterns = [
+    # USER URLS
+    path('api/user/<pk>/', api_detail_user_view, name="user_detail"),
+    path('api/user/<pk>/update', api_update_user_view, name="user_update"),
+    path('api/user/<pk>/delete', api_delete_user_view, name="user_delete"),
+
+    # REGISTRATION & LOGIN URLS
     path('api/register/', registration_view, name="register"),
-    path('api/login/', obtain_auth_token, name="login"),
+    path('api/login', ObtainAuthTokenView.as_view(), name="login"),
 
 
-    # TRYING KNOX, 4 fun
+    # KNOX URLS
     # path('api/login/', LoginAPI.as_view(), name='login'),
     # path('api/logout/', knox_views.LogoutView.as_view(), name='logout'),
     # path('api/logoutall/', knox_views.LogoutAllView.as_view(), name='logoutall'),

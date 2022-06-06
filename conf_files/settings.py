@@ -44,10 +44,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+
     'rest_framework',
-    'rest_framework_swagger',
     'rest_framework.authtoken',
+    # 'rest_framework_swagger',
     # 'knox',
+    # 'bootstrap5',
 ]
 
 MIDDLEWARE = [
@@ -149,6 +151,6 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
-    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema'
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
 }
 
