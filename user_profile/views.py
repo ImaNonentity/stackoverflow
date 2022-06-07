@@ -136,7 +136,7 @@ class ObtainAuthTokenView(APIView):
             except Token.DoesNotExist:
                 token = Token.objects.create(user=user)
             context['response'] = 'Successfully authenticated.'
-            context['pk'] = user.id
+            context['id'] = user.id
             context['email'] = email.lower()
             context['token'] = token.key
         else:
