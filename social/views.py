@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.response import Response
@@ -70,7 +71,13 @@ class QuestionCreateView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
-    @swagger_auto_schema(responses={50: QuestionSerializer(many=True)})
+    @swagger_auto_schema(request_body=openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    properties={
+        'title': openapi.Schema(type=openapi.TYPE_STRING, description='string'),
+        'content': openapi.Schema(type=openapi.TYPE_STRING, description='string'),
+    }
+))
     def post(self, request):
         question = request.data
 
@@ -89,8 +96,15 @@ class QuestionUpdateView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsOwnerUser|IsAdminUser]
 
-    def put(self, request, pk):
-        question = Question.objects.get(id=pk)
+    @swagger_auto_schema( request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'title': openapi.Schema(type=openapi.TYPE_STRING, description='string'),
+            'content': openapi.Schema(type=openapi.TYPE_STRING, description='string'),
+        }
+    ))
+    def put(self, request, id):
+        question = Question.objects.get(id=id)
         serializer = UpdateQuestionSerializer(question, data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -102,12 +116,17 @@ class QuestionDeleteView(APIView):
     """ Delete Question """
 
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsOwnerUser|IsAdminUser]
+    permission_classes = [IsOwnerUser | IsAdminUser]
 
-    def delete(self, request, pk):
-        question = Question.objects.get(id=pk)
-        question.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    def delete(self, request, id):
+        question = Question.objects.get(id=id)
+        operation = question.delete()
+        data = {}
+        if operation:
+            data["success"] = "delete successful"
+        else:
+            data["failure"] = "delete failed"
+        return Response(data=data)
 
 
 # ANSWER VIEWS
@@ -118,6 +137,7 @@ class AnswerByUserView(APIView):
     authentication_classes = []
     permission_classes = [ReadOnly]
 
+    @swagger_auto_schema(responses={50: QuestionSerializer(many=True)})
     def get(self, request, pk):
         answer = Answer.objects.get(user__pk=self.request.user.id)
         serializer = AnswerDetailSerializer(answer, many=True)
@@ -131,9 +151,14 @@ class AnswerCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        answer = request.data
         serializer = CreateAnswerSerializer(data=request.data)
+
+        new_answer = Answer.objects.create(content=answer['content'])
+        new_answer.save()
+
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(new_answer)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

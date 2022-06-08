@@ -61,7 +61,7 @@ class UpdateQuestionSerializer(serializers.ModelSerializer):
 class CreateQuestionSerializer(serializers.ModelSerializer):
 
     content = serializers.CharField(required=False)
-    user = serializers.CharField(required=False)
+    user = SimpleUserSerializer()
     # username = serializers.SerializerMethodField('get_username_from_user')
 
     class Meta:
@@ -150,11 +150,12 @@ class UpdateAnswerSerializer(serializers.ModelSerializer):
 
 class CreateAnswerSerializer(serializers.ModelSerializer):
 
+    user = serializers.CharField(required=False)
     question = serializers.SerializerMethodField('get_question_id')
 
     class Meta:
         model = Answer
-        fields = ['id', 'username', 'question', 'content', 'created_at', 'updated_at']
+        fields = ['id', 'user', 'question', 'content', 'created_at', 'updated_at']
 
     def get_question_id(self, answer):
         question = answer.question.id
@@ -169,7 +170,7 @@ class CreateAnswerSerializer(serializers.ModelSerializer):
                 )
             answer = Answer(
                 id=id,
-                username=self.validated_data['username'],
+                usere=self.validated_data['user'],
                 question=self.validated_data['question'],
                 content=content,
         )
