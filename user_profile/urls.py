@@ -3,24 +3,27 @@
 # from .views import LoginAPI
 
 from django.urls import path
-from .views import registration_view
 from .views import (
-    api_detail_user_view,
-    api_update_user_view,
-    api_delete_user_view,
+    RegistrationView,
     ObtainAuthTokenView,
+    UpdateUserView,
+    UserDetailView,
+    UserListView,
+    DeleteUserView,
+
 )
 # from rest_framework.authtoken.views import obtain_auth_token
 
 
 urlpatterns = [
     # USER URLS
-    path('api/user/<pk>/', api_detail_user_view, name="user_detail"),
-    path('api/user/<pk>/update', api_update_user_view, name="user_update"),
-    path('api/user/<pk>/delete', api_delete_user_view, name="user_delete"),
+    path('api/user/<pk>/', UserDetailView.as_view(), name="user_detail"),
+    path('api/user/<pk>/update', UpdateUserView.as_view(), name="user_update"),
+    path('api/user/list/', UserListView.as_view(), name="users_list"),
+    path('api/user/<pk>/delete', DeleteUserView.as_view(), name="user_delete"),
 
     # REGISTRATION & LOGIN URLS
-    path('api/register/', registration_view, name="register"),
+    path('api/register/', RegistrationView.as_view(), name="registration"),
     path('api/login', ObtainAuthTokenView.as_view(), name="login"),
 
 
