@@ -2,6 +2,7 @@ from rest_framework import serializers
 from user_profile.models import User
 from .models import Tag, Question, Answer, Comment, Votes
 from user_profile.serializers import UserSerializer, SimpleUserSerializer
+from rest_framework.fields import CurrentUserDefault
 
 
 MIN_TITLE_LENGTH = 5
@@ -19,17 +20,12 @@ class TagSerializer(serializers.ModelSerializer):
 # QUESTION SERIALIZERS
 class QuestionSerializer(serializers.ModelSerializer):
 
-    # username = serializers.SerializerMethodField('get_username_from_author')
-    user = SimpleUserSerializer()
+
     tag = TagSerializer(read_only=True, many=True)
 
     class Meta:
         model = Question
         fields = ['id', 'user', 'title', 'content', 'created_at', 'updated_at', 'tag']
-
-    # def get_username_from_author(self, question):
-    #     username = question.user.username
-    #     return username
 
     # def get_tags_name(self, question):
     #     tags = question.tags.title
@@ -40,7 +36,7 @@ class UpdateQuestionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Question
-        fields = ['title', 'content']
+        fields = ['user', 'title', 'content']
 
     def validate(self, question):
         try:
@@ -61,16 +57,10 @@ class UpdateQuestionSerializer(serializers.ModelSerializer):
 class CreateQuestionSerializer(serializers.ModelSerializer):
 
     content = serializers.CharField(required=False)
-    user = SimpleUserSerializer()
-    # username = serializers.SerializerMethodField('get_username_from_user')
 
     class Meta:
         model = Question
         fields = ['user', 'title', 'content']
-
-    # def get_username_from_user(self, question):
-    #     username = question.user.username
-    #     return username
 
 
 

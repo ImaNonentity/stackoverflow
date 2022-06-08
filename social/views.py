@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAdminUser, AllowAny, IsAuthenticated
+from rest_framework.fields import CurrentUserDefault
 from user_profile.permissions import IsOwnerUser, ReadOnly
 from user_profile.models import User
 from .models import Question, Answer, Comment, Tag
@@ -58,7 +59,7 @@ class QuestionView(APIView):
 
     def get(self, request, pk):
         try:
-            question = Question.objects.get(id=pk)
+            question = Question.objects.get(pk=pk)
             serializer = QuestionSerializer(question)
         except Question.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -80,10 +81,9 @@ class QuestionCreateView(APIView):
 ))
     def post(self, request):
         question = request.data
-
-        new_question = Question.objects.create(title=question['title'], content=question['content'])
+        # email = request.user.email
+        new_question = Question.objects.create(user=request.user, title=question['title'], content=question['content'])
         new_question.save()
-
         serializer = CreateQuestionSerializer(new_question)
         # if serializer.is_valid():
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -104,7 +104,7 @@ class QuestionUpdateView(APIView):
         }
     ))
     def put(self, request, id):
-        question = Question.objects.get(id=id)
+        question = Question.objects.get(id=id, user=request.user)
         serializer = UpdateQuestionSerializer(question, data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -138,7 +138,7 @@ class AnswerByUserView(APIView):
     permission_classes = [ReadOnly]
 
     @swagger_auto_schema(responses={50: QuestionSerializer(many=True)})
-    def get(self, request, pk):
+    def get(self, request, id):
         answer = Answer.objects.get(user__pk=self.request.user.id)
         serializer = AnswerDetailSerializer(answer, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -150,11 +150,16 @@ class AnswerCreateView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
+    @swagger_auto_schema(request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={'content': openapi.Schema(type=openapi.TYPE_STRING, description='string')})
+    )
     def post(self, request):
         answer = request.data
         serializer = CreateAnswerSerializer(data=request.data)
+        user = Answer.objects.get(user_id=request.user.id)
 
-        new_answer = Answer.objects.create(content=answer['content'])
+        new_answer = Answer.objects.create(user=user, content=answer['content'])
         new_answer.save()
 
         if serializer.is_valid():
