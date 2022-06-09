@@ -39,5 +39,6 @@ urlpatterns = [
     path('', include('stackoverflow.urls')),
     path('', include('user_profile.urls')),
     path('', include('social.urls')),
+    # path('', include('vote.urls')),
 
 ]

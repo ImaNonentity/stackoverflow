@@ -17,6 +17,11 @@ from .views import (
     CommentCreateView,
     CommentUpdateView,
     CommentDeleteView,
+    CreateTagView,
+    GetTagInfoView,
+    GetTagView,
+    DeleteTagView,
+    GetSingleTagInfoView,
 
 
 )
@@ -29,6 +34,7 @@ urlpatterns = [
     path('question/new', QuestionCreateView.as_view(), name="question_new"),
     path('question/<id>/update', QuestionUpdateView.as_view(), name="question_update"),
     path('question/<id>/delete', QuestionDeleteView.as_view(), name="question_delete"),
+    path('questions/tagged/', GetTagView.as_view(), name="questions-by-tag"),
 
     # ANSWER URLS
     path('answer/<id>/', AnswerByUserView.as_view(), name="answer_detail"),
@@ -40,4 +46,10 @@ urlpatterns = [
     path('comment/<id>/update', CommentUpdateView.as_view(), name="comment_update"),
     path('comment/<id>/delete', CommentDeleteView.as_view(), name="comment_delete"),
     path('comment/new', CommentCreateView.as_view(), name="comment_create"),
+
+    # TAG URLS
+    path('tag/new', CreateTagView.as_view(), name="create_tag"),
+    path('tag/list', GetTagInfoView.as_view(), name="tag_list"),
+    path('tag/<slug:slug>', GetSingleTagInfoView.as_view(), name="tag_info"),
+    path('tag/<slug:slug>/delete', DeleteTagView.as_view(), name='delete_tag')
     ]

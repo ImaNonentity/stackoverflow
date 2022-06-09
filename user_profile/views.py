@@ -1,3 +1,4 @@
+from drf_yasg import openapi
 from rest_framework import status
 from rest_framework.decorators import permission_classes
 from rest_framework.response import Response
@@ -26,6 +27,14 @@ class UpdateUserView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAdminUser|IsOwnerUser]
 
+    @swagger_auto_schema(request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'email': openapi.Schema(type=openapi.TYPE_STRING, description='string'),
+            'username': openapi.Schema(type=openapi.TYPE_STRING, description='string'),
+            'birth_date': openapi.Schema(type=openapi.TYPE_STRING, description='string'),
+        }
+    ))
     def put(self, request, pk):
         try:
             user = User.objects.get(id=pk)
@@ -68,7 +77,7 @@ class UserListView(APIView):
         user = User.objects.all()
         serializer = UserSerializer(user, many=True)
         self.check_object_permissions(request, user)
-        return Response (serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class DeleteUserView(APIView):
@@ -79,7 +88,7 @@ class DeleteUserView(APIView):
 
     def delete(self, request, pk):
         try:
-            user = User.objects.get(id=id)
+            user = User.objects.get(pk=pk)
         except User.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -100,7 +109,15 @@ class RegistrationView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
 
-    @swagger_auto_schema(operation_description="registration")
+    @swagger_auto_schema(request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'email': openapi.Schema(type=openapi.TYPE_STRING, description='string'),
+            'username': openapi.Schema(type=openapi.TYPE_STRING, description='string'),
+            'password': openapi.Schema(type=openapi.TYPE_STRING, description='string'),
+            'password2': openapi.Schema(type=openapi.TYPE_STRING, description='string'),
+        }
+    ))
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         data = {}
@@ -122,6 +139,13 @@ class ObtainAuthTokenView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
 
+    @swagger_auto_schema(request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'email': openapi.Schema(type=openapi.TYPE_STRING, description='string'),
+            'password': openapi.Schema(type=openapi.TYPE_STRING, description='string'),
+        }
+    ))
     def post(self, request):
         context = {}
 
@@ -142,119 +166,6 @@ class ObtainAuthTokenView(APIView):
             context['error_message'] = 'Invalid credentials'
 
         return Response(context)
-
-
-
-
-
-
-
-
-
-
-# USER VIEWS
-# @api_view(['GET'])
-# def api_detail_user_view(request, id):
-#     try:
-#         user = User.objects.get(id=id)
-#     except User.DoesNotExist:
-#         return Response(status=status.HTTP_404_NOT_FOUND)
-#
-#     if request.method == "GET":
-#         serializer = UserSerializer(user)
-#         return Response(serializer.data)
-#
-#
-# @api_view(['PUT'])
-# def api_update_user_view(request, id):
-#     try:
-#         user = User.objects.get(id=id)
-#     except User.DoesNotExist:
-#         return Response(status=status.HTTP_404_NOT_FOUND)
-#
-#     if request.method == "PUT":
-#         serializer = UserSerializer(user, data=request.data)
-#         data = {}
-#         if serializer.is_valid():
-#             serializer.save()
-#             data["success"] = "update successful"
-#             return Response(data=data)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-#
-#
-# @api_view(['DELETE'])
-# def api_delete_user_view(request, id):
-#     try:
-#         user = User.objects.get(id=id)
-#     except User.DoesNotExist:
-#         return Response(status=status.HTTP_404_NOT_FOUND)
-#
-#     if request.method == "DELETE":
-#         operation = user.delete()
-#         data = {}
-#         if operation:
-#             data["success"] = "delete successful"
-#         else:
-#             data["failure"] = "delete failed"
-#         return Response(data=data)
-#
-#
-# # REGISTRATION & AUTHENTICATIONS VIEWS
-# @api_view(['POST'])
-# @permission_classes([])
-# @authentication_classes([])
-# def registration_view(request):
-#     if request.method == 'POST':
-#         data = {}
-#         email = request.data.get('email', '0').lower()
-#         if validate_email(email) is not None:
-#             data['error_message'] = 'That email is already in use.'
-#             data['response'] = 'Error'
-#             return Response(data)
-#
-#         username = request.data.get('username', '0')
-#         if validate_username(username) is not None:
-#             data['error_message'] = 'That username is already in use.'
-#             data['response'] = 'Error'
-#             return Response(data)
-#
-#         serializer = RegisterSerializer(data=request.data)
-#
-#         if serializer.is_valid():
-#             user = serializer.save()
-#             data['response'] = 'Successfully registered new user.'
-#             data['email'] = user.email
-#             data['username'] = user.username
-#             data['id'] = user.id
-#             token = Token.objects.get(user=user).key
-#             data['token'] = token
-#         else:
-#             data = serializer.errors
-#         return Response(data)
-#
-#
-# def validate_email(email):
-#     user = None
-#     try:
-#         user = User.objects.get(email=email)
-#     except User.DoesNotExist:
-#         return None
-#     if user is not None:
-#         return email
-#
-#
-# def validate_username(username):
-#     user = None
-#     try:
-#         user = User.objects.get(username=username)
-#     except User.DoesNotExist:
-#         return None
-#     if user is not None:
-#         return username
-
-
-
-
 
 
 # KNOX REGISTRATION & LOGIN

@@ -19,6 +19,7 @@ from .serializers import (
     CreateAnswerSerializer,
     UpdateAnswerSerializer,
     CommentSerializer,
+    TagSerializer,
 
 )
 
@@ -73,12 +74,12 @@ class QuestionCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(request_body=openapi.Schema(
-    type=openapi.TYPE_OBJECT,
-    properties={
-        'title': openapi.Schema(type=openapi.TYPE_STRING, description='string'),
-        'content': openapi.Schema(type=openapi.TYPE_STRING, description='string'),
-    }
-))
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'title': openapi.Schema(type=openapi.TYPE_STRING, description='string'),
+            'content': openapi.Schema(type=openapi.TYPE_STRING, description='string'),
+        }
+    ))
     def post(self, request):
         question = request.data
         # email = request.user.email
@@ -94,9 +95,9 @@ class QuestionUpdateView(APIView):
     """ Update Question """
 
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsOwnerUser|IsAdminUser]
+    permission_classes = [IsOwnerUser | IsAdminUser]
 
-    @swagger_auto_schema( request_body=openapi.Schema(
+    @swagger_auto_schema(request_body=openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
             'title': openapi.Schema(type=openapi.TYPE_STRING, description='string'),
@@ -139,7 +140,8 @@ class AnswerByUserView(APIView):
 
     @swagger_auto_schema(responses={50: QuestionSerializer(many=True)})
     def get(self, request, id):
-        answer = Answer.objects.get(user__pk=self.request.user.id)
+        user = User.objects.get(id=id)
+        answer = Answer.objects.filter(user=user)
         serializer = AnswerDetailSerializer(answer, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -152,18 +154,14 @@ class AnswerCreateView(APIView):
 
     @swagger_auto_schema(request_body=openapi.Schema(
         type=openapi.TYPE_OBJECT,
-        properties={'content': openapi.Schema(type=openapi.TYPE_STRING, description='string')})
-    )
+        properties={'content': openapi.Schema(type=openapi.TYPE_STRING, description='string'),
+                    'question': openapi.Schema(type=openapi.TYPE_STRING, description='id')}
+    ))
     def post(self, request):
-        answer = request.data
+        user = User.objects.get(pk=request.user.id)
         serializer = CreateAnswerSerializer(data=request.data)
-        user = Answer.objects.get(user_id=request.user.id)
-
-        new_answer = Answer.objects.create(user=user, content=answer['content'])
-        new_answer.save()
-
         if serializer.is_valid():
-            serializer.save(new_answer)
+            serializer.save(user=user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -172,13 +170,18 @@ class AnswerUpdateView(APIView):
     """ Update Answer """
 
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsOwnerUser|IsAdminUser]
+    permission_classes = [IsOwnerUser | IsAdminUser]
 
-    def put(self, request, pk):
-        answer = Answer.objects.get(id=pk)
+    @swagger_auto_schema(request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={'content': openapi.Schema(type=openapi.TYPE_STRING, description='string')}
+    ))
+    def put(self, request, id):
+        user = User.objects.get(pk=request.user.id)
+        answer = Answer.objects.get(id=id)
         serializer = UpdateAnswerSerializer(answer, data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(user=user)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -187,12 +190,17 @@ class AnswerDeleteView(APIView):
     """ Delete Answer """
 
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsOwnerUser|IsAdminUser]
+    permission_classes = [IsOwnerUser | IsAdminUser]
 
-    def delete(self, request, pk):
-        answer = Answer.objects.get(id=pk)
-        answer.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    def delete(self, request, id):
+        answer = Answer.objects.get(id=id)
+        operation = answer.delete()
+        data = {}
+        if operation:
+            data["success"] = "delete successful"
+        else:
+            data["failure"] = "delete failed"
+        return Response(data=data)
 
 
 # COMMENT VIEWS
@@ -203,6 +211,10 @@ class CommentCreateView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
+    @swagger_auto_schema(request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={'content': openapi.Schema(type=openapi.TYPE_STRING, description='string')}
+    ))
     def post(self, request):
         serializer = CommentSerializer(data=request.data)
         if serializer.is_valid():
@@ -215,8 +227,12 @@ class CommentUpdateView(APIView):
     """ Update Comment """
 
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsOwnerUser|IsAdminUser]
+    permission_classes = [IsOwnerUser | IsAdminUser]
 
+    @swagger_auto_schema(request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={'content': openapi.Schema(type=openapi.TYPE_STRING, description='string')}
+    ))
     def put(self, request, pk):
         comment = Comment.objects.get(id=pk)
         serializer = CommentSerializer(comment, data=request.data)
@@ -230,7 +246,7 @@ class CommentDeleteView(APIView):
     """ Delete Comment """
 
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsOwnerUser|IsAdminUser]
+    permission_classes = [IsOwnerUser | IsAdminUser]
 
     def delete(self, request, pk):
         comment = Comment.objects.get(id=pk)
@@ -238,153 +254,80 @@ class CommentDeleteView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+# TAG VIEWS
+
+class CreateTagView(APIView):
+    """ Create Tag """
+
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={'title': openapi.Schema(type=openapi.TYPE_STRING, description='string'),
+                    'content': openapi.Schema(type=openapi.TYPE_STRING, description='id')}
+    ))
+    def post(self, request):
+        serializer = TagSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GetTagInfoView(APIView):
+    """ Get all Tags """
+
+    authentication_classes = []
+    permission_classes = [ReadOnly]
+
+    def get(self, request):
+        tag = Tag.objects.all()
+        serializer = TagSerializer(tag, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class GetSingleTagInfoView(APIView):
+    """ Get single Tag """
+
+    authentication_classes = []
+    permission_classes = [ReadOnly]
+
+    def get(self, request, id):
+        tag = Tag.objects.get(id=id)
+        serializer = TagSerializer(tag)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class DeleteTagView(APIView):
+    """ Delete Tag """
+
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAdminUser]
+
+    def delete(self, request, id):
+        tag = Tag.objects.get(id=id)
+        operation = tag.delete()
+        data = {}
+        if operation:
+            data["success"] = "delete successful"
+        else:
+            data["failure"] = "delete failed"
+        return Response(data=data)
+
+
+class GetTagView(APIView):
+    """ Get all Questions by Tag """
+
+    authentication_classes = []
+    permission_classes = [ReadOnly]
+
+    def get(self, request, id):
+        tag = Tag.objects.filter(id=id)
+        question = Question.objects.filter(tag=tag)
+        serializer = TagSerializer(tag, question)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 
 
-# QUESTION VIEW
-# @api_view(['GET'])
-# @permission_classes((IsAuthenticatedOrReadOnly,))
-# def detail_question_view(request, id):
-#     try:
-#         question = Question.objects.get(id=id)
-#     except Question.DoesNotExist:
-#         return Response(status=status.HTTP_404_NOT_FOUND)
-#
-#     if request.method == "GET":
-#         serializer = QuestionSerializer(question)
-#         return Response(serializer.data)
-
-
-# @api_view(['PUT'])
-# @permission_classes((IsAuthenticated,))
-# def update_question_view(request, id):
-#     try:
-#         question = Question.objects.get(id=id)
-#     except Question.DoesNotExist:
-#         return Response(status=status.HTTP_404_NOT_FOUND)
-#
-#     user = request.user
-#     if question.username != user:
-#         return Response({'response': "You don't have permission to update that"})
-#
-#     if request.method == "PUT":
-#         serializer = UpdateQuestionSerializer(question, data=request.data)
-#         data = {}
-#         if serializer.is_valid():
-#             serializer.save()
-#             data["success"] = "update successful"
-#             return Response(data=data)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-#
-#
-# @api_view(['DELETE'])
-# @permission_classes((IsAuthenticated,))
-# def delete_question_view(request, id):
-#     try:
-#         question = Question.objects.get(id=id)
-#     except Question.DoesNotExist:
-#         return Response(status=status.HTTP_404_NOT_FOUND)
-#
-#     user = request.user
-#     if question.username != user:
-#         return Response({'response': "You don't have permission to delete that."})
-#
-#     if request.method == "DELETE":
-#         operation = question.delete()
-#         data = {}
-#         if operation:
-#             data["success"] = "delete successful"
-#         else:
-#             data["failure"] = "delete failed"
-#         return Response(data=data)
-#
-#
-# @api_view(['POST'])
-# @permission_classes((IsAuthenticated,))
-# def create_question_view(request):
-#
-#     user = request.user
-#
-#     question = Question(username=user)
-#
-#     if request.method == "POST":
-#         serializer = CreateQuestionSerializer(question, data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data, status=status.HTTP_201_CREATED)
-#         return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
-
-
-# ANSWER VIEW
-# @api_view(['GET'])
-# @permission_classes((IsAuthenticatedOrReadOnly,))
-# def detail_answer_view(request, id):
-#     try:
-#         answer = Answer.objects.get(id=id)
-#     except Answer.DoesNotExist:
-#         return Response(status=status.HTTP_404_NOT_FOUND)
-#
-#     if request.method == "GET":
-#         serializer = AnswerDetailSerializer(answer)
-#         return Response(serializer.data)
-#
-#
-# @api_view(['PUT'])
-# @permission_classes((IsAuthenticated,))
-# def update_answer_view(request, id):
-#     try:
-#         answer = Answer.objects.get(id=id)
-#     except Answer.DoesNotExist:
-#         return Response(status=status.HTTP_404_NOT_FOUND)
-#
-#     user = request.user
-#     if answer.username != user:
-#         return Response({'response': "You don't have permission to update that!"})
-#
-#     if request.method == "PUT":
-#         serializer = AnswerSerializer(answer, data=request.data)
-#         data = {}
-#         if serializer.is_valid():
-#             serializer.save()
-#             data['success'] = "update successful"
-#             return Response(data=data)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-#
-#
-# @api_view(['DELETE'])
-# @permission_classes((IsAuthenticated,))
-# def delete_answer_view(request, id):
-#     try:
-#         answer = Answer.objects.get(id=id)
-#     except Answer.DoesNotExist:
-#         return Response(status=status.HTTP_404_NOT_FOUND)
-#
-#     user = request.user
-#     if answer.usermane != user:
-#         return Response({'response': "You don't have permission to delete that."})
-#
-#     if request.method == "DELETE":
-#         operation = answer.delete()
-#         data = {}
-#         if operation:
-#             data["success"] = "delete successful"
-#         else:
-#             data["failure"] = "delete failed"
-#         return Response(data=data)
-#
-#
-# @api_view(['POST'])
-# @permission_classes((IsAuthenticated,))
-# def create_answer_view(request):
-#
-#     user = request.user
-#
-#     answer = Answer(username=user)
-#
-#     if request.method == "POST":
-#         serializer = QuestionSerializer(answer, data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data, status=status.HTTP_201_CREATED)
-#         return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)

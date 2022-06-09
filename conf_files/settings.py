@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'stackoverflow.apps.StackoverflowConfig',
     'user_profile.apps.UserProfileConfig',
     'social.apps.SocialConfig',
+    'vote.apps.VoteConfig',
 
     # Django apps
     'django.contrib.admin',
