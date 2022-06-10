@@ -6,6 +6,24 @@ from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
+from .services import uploading
+
+
+NEWBIE = '0'
+APPRENTICE = '1'
+THINKER = '2'
+MASTER = '3'
+GENIUS = '4'
+HIGHER_INTELLIGENCE = '5'
+
+TITLES = [
+    [NEWBIE, 'Newbie'],
+    [APPRENTICE, 'Apprentice'],
+    [THINKER, 'Thinker'],
+    [MASTER, 'Master'],
+    [GENIUS, 'Genius'],
+    [HIGHER_INTELLIGENCE, 'Higher Intelligence']
+]
 
 
 class MyAccountManager(BaseUserManager):
@@ -48,9 +66,9 @@ class User(AbstractBaseUser):
     is_superuser = models.BooleanField(default=False)
     id = models.BigAutoField(primary_key=True)
     birth_date = models.DateField(verbose_name='birth date', null=True, blank=True)
-    avatar = models.ImageField(null=True, blank=True)
-    role = models.CharField(verbose_name='role', max_length=100, null=True, blank=True)
-    rating = models.SmallIntegerField(default=0, null=True, blank=True)
+    avatar = models.ImageField(upload_to=uploading, null=True, blank=True)
+    role = models.CharField(choices=TITLES, max_length=20, default=NEWBIE, verbose_name='user title')
+    rating = models.SmallIntegerField(default=20, null=True, blank=True)
     slug = models.SlugField(blank=True, null=True, unique=True)
     email_confirmation = models.BooleanField(default=False)
 
@@ -60,7 +78,7 @@ class User(AbstractBaseUser):
     objects = MyAccountManager()
 
     def __str__(self):
-        return f'{self.email}, id={self.id}'
+        return f'{self.email}, id={self.id}, your rank - {self.role}'
 
     def has_perm(self, perm, obj=None):
         return self.is_admin

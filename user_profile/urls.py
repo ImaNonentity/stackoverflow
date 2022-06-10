@@ -10,6 +10,7 @@ from .views import (
     UserDetailView,
     UserListView,
     DeleteUserView,
+    ChangePasswordView,
 
 )
 # from rest_framework.authtoken.views import obtain_auth_token
@@ -25,6 +26,7 @@ urlpatterns = [
     # REGISTRATION & LOGIN URLS
     path('api/register/', RegistrationView.as_view(), name="registration"),
     path('api/login', ObtainAuthTokenView.as_view(), name="login"),
+    path('change_password/', ChangePasswordView.as_view(), name="change_password"),
 
 
     # KNOX URLS

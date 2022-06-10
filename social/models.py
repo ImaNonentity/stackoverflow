@@ -12,7 +12,7 @@ class Tag(models.Model):
     id = models.BigAutoField(primary_key=True)
     title = models.CharField(max_length=100, null=True, blank=True)
     content = models.TextField(max_length=500, null=True, blank=True)
-    slug = models.SlugField(null=True, unique=True)
+    # slug = models.SlugField(null=True, unique=True)
 
     def __str__(self):
         return self.title
@@ -21,12 +21,11 @@ class Tag(models.Model):
         verbose_name = "Tag"
         verbose_name_plural = "Tags"
 
-    def save(self, *args, **kwargs):  # new
-        if not self.slug:
-            self.slug = slugify(self.title)
-        return super().save(*args, **kwargs)
-
-
+    # def save(self, *args, **kwargs):
+    #     if not self.slug:
+    #         self.slug = slugify(self.title)
+    #     return super().save(*args, **kwargs)
+    #
 
 
 class Comment(models.Model):
@@ -36,8 +35,11 @@ class Comment(models.Model):
     parent = models.ForeignKey('self', on_delete=models.SET_NULL, blank=True, null=True)
     created_at = models.DateTimeField(auto_now=True, verbose_name='answered')
     updated_at = models.DateTimeField(auto_now_add=True, verbose_name='edited')
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField(null=True, verbose_name='related_object')
+    content_type = models.ForeignKey(ContentType, null=True, blank=True, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField(
+        verbose_name='related object',
+        null=True,
+    )
     content_object = GenericForeignKey('content_type', 'object_id')
 
     def __str__(self):
@@ -58,6 +60,8 @@ class Question(models.Model):
     tag = models.ManyToManyField(Tag, verbose_name='User tag(s)', blank=True)
     comment = GenericRelation(Comment)
     vote = GenericRelation(Vote)
+    # upvote = models.ManyToManyField(User, related_name='question upvote', blank=True)
+    # downvote = models.ManyToManyField(User, related_name='question downvote', blank=True)
 
     def __str__(self):
         return f'{self.title}, {self.content}, id={self.id}'
@@ -76,6 +80,8 @@ class Answer(models.Model):
     updated_at = models.DateTimeField(auto_now_add=True, verbose_name='edited')
     comment = GenericRelation(Comment)
     vote = GenericRelation(Vote)
+    # upvote = models.ManyToManyField(User, related_name='answer upvote', blank=True)
+    # downvote = models.ManyToManyField(User, related_name='answer downvote', blank=True)
 
     def __str__(self):
         return f'{self.content[:35]}, id={self.id}'
@@ -83,7 +89,5 @@ class Answer(models.Model):
     class Meta:
         verbose_name = "Answer"
         verbose_name_plural = "Answers"
-
-
 
 

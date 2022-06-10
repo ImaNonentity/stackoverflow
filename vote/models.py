@@ -5,10 +5,10 @@ from user_profile.models import User
 
 
 class Vote(models.Model):
-    rating_type = (
+    rating_type = [
         ('UP_VOTE', 1),
         ('DOWN_VOTE', -1)
-    )
+    ]
     username = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
     type = models.CharField(max_length=50, choices=rating_type)
     created_at = models.DateTimeField(auto_now=True)

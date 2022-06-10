@@ -12,8 +12,7 @@ from user_profile.models import User
 from .models import Question, Answer, Comment, Tag
 from .serializers import (
     QuestionSerializer,
-    UpdateQuestionSerializer,
-    CreateQuestionSerializer,
+    SimpleQuestionSerializer,
     AnswerSerializer,
     AnswerDetailSerializer,
     CreateAnswerSerializer,
@@ -35,7 +34,7 @@ class QuestionByUserListView(APIView):
     @swagger_auto_schema(responses={50: QuestionSerializer(many=True)})
     def get(self, request, pk):
         question = Question.objects.filter(user__pk=self.request.user.id)
-        serializer = QuestionSerializer(question, many=True)
+        serializer = SimpleQuestionSerializer(question, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -48,7 +47,7 @@ class QuestionsListView(APIView):
     @swagger_auto_schema(responses={50: QuestionSerializer(many=True)})
     def get(self, request):
         question = Question.objects.all()
-        serializer = QuestionSerializer(question, many=True)
+        serializer = SimpleQuestionSerializer(question, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -61,10 +60,34 @@ class QuestionView(APIView):
     def get(self, request, pk):
         try:
             question = Question.objects.get(pk=pk)
-            serializer = QuestionSerializer(question)
+            serializer = SimpleQuestionSerializer(question)
         except Question.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def upvote(self, request, pk):
+        """Upvote a question. Remove downvote of user if present. """
+
+        question = self.objects.get(pk=pk)
+        question.downvote.remove(request.user)
+        question.upvotes.add(request.user)
+        return Response(self.data)
+
+    def downvote(self, request, pk):
+        """ Downvote a question. Remove upvote of user if present. """
+
+        question = self.objects.get(pk=pk)
+        question.upvote.remove(request.user)
+        question.downvote.add(request.user)
+        return Response(self.data)
+
+    def remove_vote(self, request, pk):
+        """ Remove casted vote. Upvote -> remove_vote -> no vote."""
+
+        question = self.objects.get(pk=pk)
+        question.upvote.remove(request.user)
+        question.downvote.remove(request.user)
+        return Response(self.data)
 
 
 class QuestionCreateView(APIView):
@@ -73,22 +96,28 @@ class QuestionCreateView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
+    # def check_rating(self):
+    #     rate = Question.objects.filter(user=self.request.user).count()
+    #     return rate
+
     @swagger_auto_schema(request_body=openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
-            'title': openapi.Schema(type=openapi.TYPE_STRING, description='string'),
-            'content': openapi.Schema(type=openapi.TYPE_STRING, description='string'),
+            'title': openapi.Schema(type=openapi.TYPE_STRING, description='title'),
+            'content': openapi.Schema(type=openapi.TYPE_STRING, description='content'),
+            'tag': openapi.Schema(type=openapi.TYPE_STRING, description='tag id')
         }
     ))
     def post(self, request):
         question = request.data
-        # email = request.user.email
-        new_question = Question.objects.create(user=request.user, title=question['title'], content=question['content'])
+        new_question = Question.objects.create(user=request.user,
+                                               title=question['title'],
+                                               content=question['content'],
+                                               tag=question['tag'])
+
         new_question.save()
-        serializer = CreateQuestionSerializer(new_question)
-        # if serializer.is_valid():
+        serializer = QuestionSerializer(new_question)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-        # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class QuestionUpdateView(APIView):
@@ -100,13 +129,13 @@ class QuestionUpdateView(APIView):
     @swagger_auto_schema(request_body=openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
-            'title': openapi.Schema(type=openapi.TYPE_STRING, description='string'),
-            'content': openapi.Schema(type=openapi.TYPE_STRING, description='string'),
+            'title': openapi.Schema(type=openapi.TYPE_STRING, description='title'),
+            'content': openapi.Schema(type=openapi.TYPE_STRING, description='content'),
         }
     ))
     def put(self, request, id):
         question = Question.objects.get(id=id, user=request.user)
-        serializer = UpdateQuestionSerializer(question, data=request.data)
+        serializer = QuestionSerializer(question, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -152,6 +181,12 @@ class AnswerCreateView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
+    def plus_rate(self, request):
+        user = User.objects.get(pk=request.user.id)
+        user.rating += 20
+        user.save()
+        return user
+
     @swagger_auto_schema(request_body=openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={'content': openapi.Schema(type=openapi.TYPE_STRING, description='string'),
@@ -161,6 +196,7 @@ class AnswerCreateView(APIView):
         user = User.objects.get(pk=request.user.id)
         serializer = CreateAnswerSerializer(data=request.data)
         if serializer.is_valid():
+            self.plus_rate(request)
             serializer.save(user=user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -211,14 +247,23 @@ class CommentCreateView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
+    def plus_rate(self, request):
+        user = User.objects.get(pk=request.user.id)
+        user.rating += 5
+        user.save()
+        return user
+
     @swagger_auto_schema(request_body=openapi.Schema(
         type=openapi.TYPE_OBJECT,
-        properties={'content': openapi.Schema(type=openapi.TYPE_STRING, description='string')}
+        properties={'content': openapi.Schema(type=openapi.TYPE_STRING, description='content'),
+                    'content_type': openapi.Schema(type=openapi.TYPE_STRING, description='content_type'),
+                    'object_id': openapi.Schema(type=openapi.TYPE_STRING, description='object_id')}
     ))
     def post(self, request):
         serializer = CommentSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            self.plus_rate(request)
+            serializer.save(user=self.request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -231,13 +276,16 @@ class CommentUpdateView(APIView):
 
     @swagger_auto_schema(request_body=openapi.Schema(
         type=openapi.TYPE_OBJECT,
-        properties={'content': openapi.Schema(type=openapi.TYPE_STRING, description='string')}
+        properties={'content': openapi.Schema(type=openapi.TYPE_STRING, description='content'),
+                    'content_type': openapi.Schema(type=openapi.TYPE_STRING, description='content_type'),
+                    'object_id': openapi.Schema(type=openapi.TYPE_STRING, description='object_id')}
     ))
-    def put(self, request, pk):
-        comment = Comment.objects.get(id=pk)
+    def put(self, request, id):
+        # user = User.objects.get(id=request.user.id)
+        comment = Comment.objects.get(id=id)
         serializer = CommentSerializer(comment, data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(user=request.user)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -248,10 +296,15 @@ class CommentDeleteView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsOwnerUser | IsAdminUser]
 
-    def delete(self, request, pk):
-        comment = Comment.objects.get(id=pk)
-        comment.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    def delete(self, request, id):
+        comment = Comment.objects.get(id=id)
+        operation = comment.delete()
+        data = {}
+        if operation:
+            data["success"] = "delete successful"
+        else:
+            data["failure"] = "delete failed"
+        return Response(data=data)
 
 
 # TAG VIEWS
@@ -264,8 +317,8 @@ class CreateTagView(APIView):
 
     @swagger_auto_schema(request_body=openapi.Schema(
         type=openapi.TYPE_OBJECT,
-        properties={'title': openapi.Schema(type=openapi.TYPE_STRING, description='string'),
-                    'content': openapi.Schema(type=openapi.TYPE_STRING, description='id')}
+        properties={'title': openapi.Schema(type=openapi.TYPE_STRING, description='title'),
+                    'content': openapi.Schema(type=openapi.TYPE_STRING, description='content')}
     ))
     def post(self, request):
         serializer = TagSerializer(data=request.data)
@@ -325,9 +378,6 @@ class GetTagView(APIView):
     def get(self, request, id):
         tag = Tag.objects.filter(id=id)
         question = Question.objects.filter(tag=tag)
-        serializer = TagSerializer(tag, question)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-
-
+        serializer = QuestionSerializer(tag, question)
+        if serializer.is_valid():
+            return Response(serializer.data, status=status.HTTP_200_OK)
