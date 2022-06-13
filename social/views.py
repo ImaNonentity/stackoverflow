@@ -10,6 +10,7 @@ from rest_framework.fields import CurrentUserDefault
 from user_profile.permissions import IsOwnerUser, ReadOnly
 from user_profile.models import User
 from .models import Question, Answer, Comment, Tag
+from .services import upvote, downvote, remove_vote
 from .serializers import (
     QuestionSerializer,
     SimpleQuestionSerializer,
@@ -64,30 +65,6 @@ class QuestionView(APIView):
         except Question.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def upvote(self, request, pk):
-        """Upvote a question. Remove downvote of user if present. """
-
-        question = self.objects.get(pk=pk)
-        question.downvote.remove(request.user)
-        question.upvotes.add(request.user)
-        return Response(self.data)
-
-    def downvote(self, request, pk):
-        """ Downvote a question. Remove upvote of user if present. """
-
-        question = self.objects.get(pk=pk)
-        question.upvote.remove(request.user)
-        question.downvote.add(request.user)
-        return Response(self.data)
-
-    def remove_vote(self, request, pk):
-        """ Remove casted vote. Upvote -> remove_vote -> no vote."""
-
-        question = self.objects.get(pk=pk)
-        question.upvote.remove(request.user)
-        question.downvote.remove(request.user)
-        return Response(self.data)
 
 
 class QuestionCreateView(APIView):

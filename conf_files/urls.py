@@ -20,7 +20,7 @@ from django.urls import path, include
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 
-schema_view = get_schema_view(  # new
+schema_view = get_schema_view(
     openapi.Info(
         title="Stackoverflow API",
         default_version='v1',
@@ -36,6 +36,9 @@ schema_view = get_schema_view(  # new
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('ui', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('auth/', include('djoser.urls')),
+    path('accounts/', include('allauth.urls')),
+    path('', include('djoser.urls.authtoken')),
     path('', include('stackoverflow.urls')),
     path('', include('user_profile.urls')),
     path('', include('social.urls')),
