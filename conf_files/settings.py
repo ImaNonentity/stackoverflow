@@ -180,7 +180,9 @@ SWAGGER_SETTINGS = {
 SITE_ID = 1
 
 AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend',
-                           'allauth.account.auth_backends.AuthenticationBackend']
+                           'allauth.account.auth_backends.AuthenticationBackend',
+                           'social.backends.linkedin.LinkedinOAuth2',
+                           ]
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 EMAIL_USE_TLS = True
