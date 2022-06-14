@@ -23,7 +23,6 @@ from .views import (
     DeleteTagView,
     GetSingleTagInfoView,
 
-
 )
 urlpatterns = [
     # path('uii', schema_view),
@@ -34,7 +33,7 @@ urlpatterns = [
     path('question/new', QuestionCreateView.as_view(), name="question_new"),
     path('question/<id>/update', QuestionUpdateView.as_view(), name="question_update"),
     path('question/<id>/delete', QuestionDeleteView.as_view(), name="question_delete"),
-    path('questions/tagged/', GetTagView.as_view(), name="questions-by-tag"),
+    path('questions/tagged/<id>/', GetTagView.as_view(), name="questions-by-tag"),
 
     # ANSWER URLS
     path('answer/<id>/', AnswerByUserView.as_view(), name="answer_detail"),

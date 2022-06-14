@@ -1,26 +1,30 @@
 # from user_profile.models import User, TITLES
 from rest_framework.response import Response
+from user_profile.models import TITLES, User
 #
-# def check_user_rating(instance):
-#     """ User rating->role logic """
-#
-#     roles = TITLES
-#     user = User.objects.get(pk=instance.id)
-#
-#     if user.rating < 100:
-#         user.role = 'Newbie'
-#     elif 100 < user.rating < 200:
-#         user.role = 'Apprentice'
-#     elif 200 < user.rating < 300:
-#         user.role = 'Thinker'
-#     elif 300 < user.rating < 400:
-#         user.role = 'Master'
-#     elif 400 < user.rating < 500:
-#         user.role = 'Genius'
-#     else:
-#         user.role = 'Higher Intelligence'
-#     user.save()
-#     return user
+
+
+def add_rating(instance):
+    """ User rating->role logic """
+
+    roles = TITLES
+    user = User.objects.get(pk=instance.id)
+    user.rating += 25
+
+    if user.rating < 100:
+        user.role = 'Newbie'
+    elif 100 < user.rating < 200:
+        user.role = 'Apprentice'
+    elif 200 < user.rating < 300:
+        user.role = 'Thinker'
+    elif 300 < user.rating < 400:
+        user.role = 'Master'
+    elif 400 < user.rating < 500:
+        user.role = 'Genius'
+    else:
+        user.role = 'Higher Intelligence'
+    user.save()
+    return user
 
 
 # VOTE

@@ -59,9 +59,21 @@ class SimpleQuestionSerializer(serializers.ModelSerializer):
         model = Question
         fields = ['id', 'user', 'title', 'content', 'created_at', 'updated_at', 'tag']
 
-    # def get_tags_name(self, question):
-    #     tags = question.tags.title
-    #     return tags
+
+class CreateQuestionSerializer(serializers.ModelSerializer):
+
+    tag = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(), write_only=True, many=True)
+
+    class Meta:
+        model = Question
+        fields = ['title', 'content', 'tag', 'user']
+
+    def create(self, validated_data):
+        tags = validated_data.pop('tag')
+        question = Question.objects.create(**validated_data)
+        for tag in tags:
+            question.tag.add(tag)
+        return question
 
 
 class QuestionSerializer(serializers.ModelSerializer):
