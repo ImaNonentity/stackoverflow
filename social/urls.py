@@ -4,6 +4,7 @@ from django.urls import path
 # schema_view = get_swagger_view(title='Pastebin API')
 
 from .views import (
+    QuestionVoteView,
     QuestionByUserListView,
     QuestionsListView,
     QuestionView,
@@ -34,6 +35,8 @@ urlpatterns = [
     path('question/<id>/update', QuestionUpdateView.as_view(), name="question_update"),
     path('question/<id>/delete', QuestionDeleteView.as_view(), name="question_delete"),
     path('questions/tagged/<id>/', GetTagView.as_view(), name="questions-by-tag"),
+    path('question/<id>/vote/', QuestionVoteView.as_view(), name='question_vote'),
+
 
     # ANSWER URLS
     path('answer/<id>/', AnswerByUserView.as_view(), name="answer_detail"),

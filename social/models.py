@@ -35,6 +35,7 @@ class Comment(models.Model):
     parent = models.ForeignKey('self', on_delete=models.SET_NULL, blank=True, null=True)
     created_at = models.DateTimeField(auto_now=True, verbose_name='answered')
     updated_at = models.DateTimeField(auto_now_add=True, verbose_name='edited')
+    vote = GenericRelation(Vote)
     content_type = models.ForeignKey(ContentType, null=True, blank=True, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField(
         verbose_name='related object',

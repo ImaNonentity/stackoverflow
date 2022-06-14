@@ -27,39 +27,10 @@ TITLES = [
 ]
 
 
-# class MyAccountManager(BaseUserManager):
-#     def create_user(self, email, username, password=None):
-#         if not email:
-#             raise ValueError('Users must have an email address')
-#         if not username:
-#             raise ValueError('Users must have a username')
-#
-#         user = self.model(
-#             email=self.normalize_email(email),
-#             username=username,
-#         )
-#
-#         user.set_password(password)
-#         user.save(using=self._db)
-#         return user
-#
-#     def create_superuser(self, email, username, password):
-#         user = self.create_user(
-#             email=self.normalize_email(email),
-#             password=password,
-#             username=username,
-#         )
-#         user.is_admin = True
-#         user.is_staff = True
-#         user.is_superuser = True
-#         user.save(using=self._db)
-#         return user
-
-
 class User(AbstractUser):
     email = models.EmailField(max_length=50, verbose_name='email', unique=True)
     birth_date = models.DateField(verbose_name='birth date', null=True, blank=True)
-    avatar = models.ImageField(upload_to=uploading, null=True, blank=True)
+    profile_photo = models.ImageField(upload_to=uploading, null=True, blank=True)
     role = models.CharField(choices=TITLES, max_length=20, default=NEWBIE, verbose_name='user title')
     rating = models.SmallIntegerField(default=20, null=True, blank=True)
     slug = models.SlugField(blank=True, null=True, unique=True)
@@ -67,8 +38,6 @@ class User(AbstractUser):
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
-
-    # objects = MyAccountManager()
 
     def __str__(self):
         return f'{self.email}, {self.username}, your rank - {self.role}'

@@ -134,7 +134,12 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
+# STATICFILES_DIRS = [os.path.join(BASE_DIR, "site_static")]
+# STATIC_ROOT = os.path.join(BASE_DIR, "myproject", "static")
 STATIC_URL = 'static/'
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
@@ -181,20 +186,26 @@ SITE_ID = 1
 
 AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend',
                            'allauth.account.auth_backends.AuthenticationBackend',
-                           'social.backends.linkedin.LinkedinOAuth2',
+                           # 'social.backends.linkedin.LinkedinOAuth2',
                            ]
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-EMAIL_USE_TLS = True
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
-EMAIL_PORT = 587
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_HOST_USER = 'hellofrom.localstackoverflow@gmail.com'
+# EMAIL_HOST_PASSWORD = 'stackoverflow'
+# EMAIL_USE_TLS = True
+# DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_LOGIN_ON_PASSWORD_RESET = True
+ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE = True
+ACCOUNT_SESSION_REMEMBER = True
 
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 
+ACCOUNT_LOGOUT_REDIRECT_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
 
 ACCOUNT_USERNAME_REQUIRED = False
@@ -228,3 +239,4 @@ SOCIALACCOUNT_PROVIDERS = {
 
     }
 }
+

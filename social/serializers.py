@@ -2,6 +2,7 @@ from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 from user_profile.models import User
 from .models import Tag, Question, Answer, Comment, Vote
+
 from user_profile.serializers import UserSerializer, SimpleUserSerializer
 from rest_framework.fields import CurrentUserDefault, IntegerField
 
@@ -77,13 +78,13 @@ class CreateQuestionSerializer(serializers.ModelSerializer):
 
 
 class QuestionSerializer(serializers.ModelSerializer):
-    tag = TagSerializer(many=True)
-    upvote = serializers.IntegerField(source='upvote.count')
-    downvote = serializers.IntegerField(source='downvote.count')
+    title = serializers.CharField(read_only=True)
+    content = serializers.CharField(read_only=True)
+    tag = SimpleTagSerializer(read_only=True)
 
     class Meta:
         model = Question
-        fields = ['user', 'title', 'content', 'tag', 'upvote', 'downvote']
+        fields = ['user', 'title', 'content', 'tag']
 
     def validate(self, question):
         try:
@@ -180,3 +181,14 @@ class AnswerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Answer
         fields = '__all__'
+
+
+# class SerializerClassRequestContextMixin(object):
+#
+#     def get_context_serializer_class(self, klass, instance, **kwargs):
+#         context = self.get_serializer_context()
+#         supplied_context = kwargs.pop('context', {})
+#         context.update(supplied_context)
+#         return klass(instance, context=context, **kwargs)
+
+

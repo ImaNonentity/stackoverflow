@@ -13,17 +13,26 @@ class SimpleUserSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    profile_photo = serializers.ImageField(required=True)
+
     class Meta:
         model = User
-        fields = ['id', 'email', 'username', 'avatar', 'last_login', 'birth_date', 'role', 'rating']
+        fields = ['id', 'email', 'username', 'profile_photo', 'last_login', 'birth_date', 'role', 'rating']
 
 
-class ImageUploadSerializer(serializers.ModelSerializer):
+class UserAvatarSerializer(serializers.ModelSerializer):
+    profile_photo = serializers.ImageField(required=False)
+
     class Meta:
         model = User
-        fields = ['avatar', ]
+        fields = ['profile_photo', ]
 
-    # MY CUSTOM HANDMADE REGISTRATION & LOGIN URLS
+    def save(self, *args, **kwargs):
+        if self.instance.profile_photo:
+            self.instance.profile_photo.delete()
+        return super().save(*args, **kwargs)
+
+    # MY CUSTOM HANDMADE REGISTRATION 8)
 
 # class RegisterSerializer(serializers.ModelSerializer):
 #
