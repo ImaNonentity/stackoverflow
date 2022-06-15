@@ -9,9 +9,8 @@ from rest_framework.permissions import IsAdminUser, AllowAny, IsAuthenticated
 from rest_framework.fields import CurrentUserDefault
 from user_profile.permissions import IsOwnerUser, ReadOnly
 from user_profile.models import User
-from .services import add_rating
+from vote.services import RatingCountSystem
 from .models import Question, Answer, Comment, Tag
-# from .services import upvote, downvote, remove_vote
 from .serializers import (
     CreateQuestionSerializer,
     QuestionSerializer,
@@ -85,7 +84,8 @@ class QuestionCreateView(APIView):
     ))
     def post(self, request):
         serializer = CreateQuestionSerializer(data=request.data)
-        add_rating(self.request.user)
+        x = RatingCountSystem(user=self.request.user)
+        x.check_rank()
         if serializer.is_valid():
             serializer.save(user=self.request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -115,6 +115,7 @@ class QuestionUpdateView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+# TEST VIEW
 class QuestionVoteView(APIView):
 
     def post(self, request, id):
@@ -203,7 +204,8 @@ class AnswerCreateView(APIView):
     def post(self, request):
         user = User.objects.get(pk=request.user.id)
         serializer = CreateAnswerSerializer(data=request.data)
-        add_rating(self.request.user)
+        x = RatingCountSystem(user=self.request.user)
+        x.check_rank()
         if serializer.is_valid():
             serializer.save(user=user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -263,7 +265,8 @@ class CommentCreateView(APIView):
     ))
     def post(self, request):
         serializer = CommentSerializer(data=request.data)
-        add_rating(self.request.user)
+        x = RatingCountSystem(user=self.request.user)
+        x.check_rank()
         if serializer.is_valid():
             serializer.save(user=self.request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)

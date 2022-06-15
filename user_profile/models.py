@@ -42,6 +42,7 @@ class User(AbstractUser):
     def __str__(self):
         return f'{self.email}, {self.username}, your rank - {self.role}'
 
+
     # def has_perm(self, perm, obj=None):
     #     return self.is_admin
     #

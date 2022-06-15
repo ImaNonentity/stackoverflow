@@ -13,7 +13,7 @@ class SimpleUserSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    profile_photo = serializers.ImageField(required=True)
+    profile_photo = serializers.ImageField(required=False)
 
     class Meta:
         model = User
@@ -27,10 +27,10 @@ class UserAvatarSerializer(serializers.ModelSerializer):
         model = User
         fields = ['profile_photo', ]
 
-    def save(self, *args, **kwargs):
-        if self.instance.profile_photo:
-            self.instance.profile_photo.delete()
-        return super().save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     if self.instance.profile_photo:
+    #         self.instance.profile_photo.delete()
+    #     return super().save(*args, **kwargs)
 
     # MY CUSTOM HANDMADE REGISTRATION 8)
 

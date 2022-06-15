@@ -44,11 +44,6 @@ class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = '__all__'
-        # prepopulated_fields = {'slug': ('title',)}
-        # lookup_field = 'slug'
-        # extra_kwargs = {
-        #     'url': {'lookup_field': 'slug'}
-        # }
 
 
 # QUESTION SERIALIZERS

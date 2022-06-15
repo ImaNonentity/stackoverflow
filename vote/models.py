@@ -19,7 +19,7 @@ class Vote(models.Model):
     content_object = GenericForeignKey('content_type', 'object_id')
 
     def __str__(self):
-        return f'{self.user} - {self.action_type}'
+        return f'{self.user}, vote: {self.action_type}'
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)

@@ -48,14 +48,13 @@ class UploadUserImageView(APIView):
         responses={400: 'Invalid data in uploaded file',
                    200: 'Success'},
     )
-    def post(self, request, format=None):
-
-        serializer = UserAvatarSerializer(data=request.data, instance=request.user)
+    def put(self, request):
+        queryset = User.objects.get(pk=self.request.user.id)
+        serializer = UserAvatarSerializer(queryset, data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            return Response("Image updated!", status=status.HTTP_200_OK)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            serializer.save(user=self.request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 #
 # class UploadUserImageView(ListAPIView):
