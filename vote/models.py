@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.db.models import UniqueConstraint
+
 from user_profile.models import User
 
 
@@ -17,6 +19,7 @@ class Vote(models.Model):
     content_type = models.ForeignKey(ContentType, null=True, blank=True,  on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField(null=True, verbose_name='related object')
     content_object = GenericForeignKey('content_type', 'object_id')
+    unique_value = UniqueConstraint(content_object, user)
 
     def __str__(self):
         return f'{self.user}, vote: {self.action_type}'

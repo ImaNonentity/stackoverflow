@@ -20,13 +20,10 @@ class VoteCreateView(APIView):
                     'object_id': openapi.Schema(type=openapi.TYPE_STRING, description='string')})
     )
     def post(self, request):
-        rate = RatingCountSystem(action_type=request.data['action_type'],
-                                 content_type=request.data['content_type'],
-                                 object_id=request.data['object_id'],
-                                 user=request.user)
         serializer = VoteSerializer(data=request.data)
         if serializer.is_valid():
-            rate.validate_user(user=self.request.user)
+            # x = RatingCountSystem(data=request.data, serializer=VoteSerializer, user=request.user)
+            # x.validate_user()
             serializer.save(user=self.request.user)
             # count.votes_count()
             # count.custom_pre_save_vote.send_robust(sender=Vote)

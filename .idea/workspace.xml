@@ -2,17 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="841feb36-c2e6-4656-891b-5972871b5f1d" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/user_profile/permissions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/djangoProject.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/djangoProject.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/conf_files/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/conf_files/settings.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/conf_files/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/conf_files/urls.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/social/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/social/serializers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/social/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/social/urls.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/social/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/social/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sqlite3.db" beforeDir="false" afterPath="$PROJECT_DIR$/sqlite3.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/user_profile/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/user_profile/serializers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/user_profile/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/user_profile/urls.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/user_profile/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/user_profile/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vote/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/vote/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vote/services.py" beforeDir="false" afterPath="$PROJECT_DIR$/vote/services.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vote/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/vote/views.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -27,10 +21,48 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+  </component>
+  <component name="RunManager">
+    <configuration name="manage" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+      <module name="stackoverflow-main" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="C:\Users\child\PycharmProjects\stackoverflow\stackvenv\Scripts\python.exe" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="net.ashald.envfile">
+        <option name="IS_ENABLED" value="false" />
+        <option name="IS_SUBST" value="false" />
+        <option name="IS_PATH_MACRO_SUPPORTED" value="false" />
+        <option name="IS_IGNORE_MISSING_FILES" value="false" />
+        <option name="IS_ENABLE_EXPERIMENTAL_INTEGRATIONS" value="false" />
+        <ENTRIES>
+          <ENTRY IS_ENABLED="true" PARSER="runconfig" />
+        </ENTRIES>
+      </EXTENSION>
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/manage.py" />
+      <option name="PARAMETERS" value="runserver" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+  </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="39273ee7-f2b6-4f74-a890-8d50a27e8d90" name="Changes" comment="" />
+      <changelist id="841feb36-c2e6-4656-891b-5972871b5f1d" name="Changes" comment="" />
       <created>1654503115447</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
@@ -45,11 +77,43 @@
       <option name="project" value="LOCAL" />
       <updated>1654674607302</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="--rewrote views in class based views">
+      <created>1654694759237</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1654694759237</updated>
+    </task>
+    <task id="LOCAL-00003" summary="--added drf-yasg settings in decorators on Question models">
+      <created>1654699287629</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1654699287629</updated>
+    </task>
+    <task id="LOCAL-00004" summary="--new requirements">
+      <created>1654699377127</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1654699377127</updated>
+    </task>
+    <task id="LOCAL-00005" summary="--fixed question views &amp; serializers">
+      <created>1654704689013</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1654704689013</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="--gitignore" />
-    <option name="LAST_COMMIT_MESSAGE" value="--gitignore" />
+    <MESSAGE value="--rewrote views in class based views" />
+    <MESSAGE value="--added drf-yasg settings in decorators on Question models" />
+    <MESSAGE value="--new requirements" />
+    <MESSAGE value="--fixed question views &amp; serializers" />
+    <option name="LAST_COMMIT_MESSAGE" value="--fixed question views &amp; serializers" />
   </component>
 </project>
