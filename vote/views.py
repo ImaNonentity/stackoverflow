@@ -11,7 +11,6 @@ from .services import RatingCountSystem, VotingCountSystem
 from django.contrib.contenttypes.models import ContentType
 
 
-
 class VoteCreateView(APIView):
     """ Create New Vote """
     permission_classes = [IsAuthenticated]

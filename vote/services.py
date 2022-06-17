@@ -1,13 +1,15 @@
-from django.db.models import UniqueConstraint
-from requests import Response
+from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from rest_framework import status, serializers
-from user_profile.models import User, NEWBIE, APPRENTICE, THINKER, MASTER, GENIUS, HIGHER_INTELLIGENCE
+from user_profile.models import User, TITLES, NEWBIE, APPRENTICE, THINKER, MASTER, GENIUS, HIGHER_INTELLIGENCE
 from social.models import Question, Answer, Comment
+import datetime
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from .models import Vote
 
+
+# TODO: catch exceptions on UNIQUE constraint failed (IntegrityError at /vote/create)
 
 class VotingCountSystem:
     """ Voting Count System Logic """
@@ -25,17 +27,24 @@ class VotingCountSystem:
     def update_vote(self):
         new_action_type = self.data['action_type']
         vote = self.content_object.vote.get(user=self.user)
-        print(f'"Previous:" {vote},'
-              f' "Previous action_type:" {vote.action_type},'
-              f' "next vote:" {new_action_type}')
         if vote.action_type == new_action_type:
-            print(f'"IM HERE"{self.action_type}')
             self.action_type = 0
 
         vote.action_type = self.action_type
         vote.save()
         return vote
 
+
+# TODO: написать валидацию юзера.
+# Голосовать можно, если рейтинг пользователя >= 50
+
+# за вопросы:
+# Голосовать можно в течении 1 месяца, с даты публикации вопроса
+# Переголосовать можно в течение 3 часов
+
+# за ответы:
+# Переголосовать можно в течении 3 часов
+# Голосование за ответ бессрочное
 
     # @receiver(pre_save, sender=Vote)
     # def custom_pre_save_vote(sender, instance: Vote, **kwargs):
@@ -47,8 +56,6 @@ class VotingCountSystem:
     #     if previous:
     #         if previous.action_type == instance.action_type:
     #             instance.action_type = ('0', 0)
-
-
 
 
 class RatingCountSystem:
@@ -68,17 +75,28 @@ class RatingCountSystem:
         "MY_QUESTION_VOTE_QUESTION_DOWN": -23,
     }
 
-    def __init__(self, user):
+    def __init__(self, data, user):
         self.user = user
+        self.data = data
         self.rating_power = 0
+
+    def validate_user(self):
+        today_records = Question.objects.filter(user=self.user,
+                                                created_at__date=datetime.date.today()).count()
+        if self.user.role:
+            if today_records >= int(self.user.role):
+                raise serializers.ValidationError(f'{self.user.username}, '
+                                                  f'your limit is {self.user.role} record(s) per day')
+            return Response(self.data, status=status.HTTP_201_CREATED)
 
     def check_rank(self):
         """ User rating -> role logic """
 
         question = Question.objects.filter(user=self.user.id).count()
         answer = Answer.objects.filter(user=self.user.id).count()
-        self.rating_power = 5 * (question + answer)
-        self.user.rating = self.rating_power
+        comment = Comment.objects.filter(user=self.user.id).count()
+        self.rating_power = 5 * (question + answer + comment)
+        self.user.rating += self.rating_power
 
         if self.user.rating < 100:
             self.user.role = NEWBIE
