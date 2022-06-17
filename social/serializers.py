@@ -96,17 +96,6 @@ class QuestionSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"response": "You must have a title and content."})
         return question
 
-    # def get_user_vote(self, obj):
-    #     try:
-    #         user = self.context['request'].user
-    #     except KeyError:
-    #         return 0
-    #     if user in obj.upvote.all():
-    #         return 1
-    #     if user in obj.downvote.all():
-    #         return -1
-    #     return 0
-
 
 # ANSWER SERIALIZERS
 
@@ -117,17 +106,6 @@ class AnswerDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Answer
         fields = ['id', 'user', 'question', 'content', 'created_at', 'updated_at', 'upvote', 'downvote']
-
-    # def get_user_vote(self, obj):
-    #     try:
-    #         user = self.context['request'].user
-    #     except KeyError:
-    #         return 0
-    #     if user in obj.upvote.all():
-    #         return 1
-    #     if user in obj.downvote.all():
-    #         return -1
-    #     return 0
 
 
 class UpdateAnswerSerializer(serializers.ModelSerializer):

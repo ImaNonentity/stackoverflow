@@ -126,36 +126,6 @@ class QuestionVoteView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    # def upvote(self, request, pk):
-    #
-    #     question = self.objects.get(id=id, user=request.user)
-    #     question.downvotes.remove(request.user)
-    #     question.upvotes.add(request.user)
-    #     serializer = QuestionSerializer(question, data=request.data)
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #     return Response(serializer.data)
-    #
-    # def downvote(self, request, pk):
-    #
-    #     question = Question.objects.get(id=id, user=request.user)
-    #     question.upvotes.remove(request.user)
-    #     question.downvotes.add(request.user)
-    #     serializer = QuestionSerializer(question, data=request.data)
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #     return Response(serializer.data)
-    #
-    # def remove_vote(self, request, pk):
-    #
-    #     question = Question.objects.get(id=id, user=request.user)
-    #     question.upvotes.remove(request.user)
-    #     question.downvotes.remove(request.user)
-    #     serializer = QuestionSerializer(question, data=request.data)
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #     return Response(serializer.data)
-
 
 class QuestionDeleteView(APIView):
     """ Delete Question """
