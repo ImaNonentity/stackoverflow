@@ -28,12 +28,12 @@ class Vote(models.Model):
     # unique_value = UniqueConstraint(content_object, user)
 
     def __str__(self):
-        return f'{self.user}, vote: {self.action_type}'
+        return f'{self.user}, vote: {self.action_type}, id: {self.id}'
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
     class Meta:
-        unique_together = ('content_type', 'object_id', 'user')
+        # unique_together = ('content_type', 'object_id', 'user')
         verbose_name = "Vote"
         verbose_name_plural = "Votes"

@@ -1,17 +1,19 @@
 # from django.contrib.contenttypes.models import ContentType
 # from rest_framework import serializers
 # from .models import Vote
-from vote.models import Vote
+from .models import Vote
 from rest_framework import serializers
 from django.core.exceptions import ValidationError
 from django.contrib.contenttypes.models import ContentType
 
-from vote.services import VotingCountSystem
+from .services import VotingCountSystem
 
 CONTENT_TYPES_MODEL = ['question', 'answer']
 
 
-class VoteSerializer(serializers.ModelSerializer):
+# TODO: 2 сериалайзера, один для аутпута, второй для инпута
+
+class VoteOutputSerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source='user.username')
     content_type = serializers.SlugRelatedField(queryset=ContentType.objects.filter(model__in=CONTENT_TYPES_MODEL),
                                                 slug_field='model')
@@ -35,19 +37,3 @@ class VoteSerializer(serializers.ModelSerializer):
                                  f'- action type must be in {", ".join(Vote.RATING_CHOICES_LIST_STR)}']}
             )
         return attrs
-
-    def create(self, validated_data):
-        print("I'm here!")
-        return Vote.objects.create(**validated_data)
-
-    def update(self, instance, validated_data):
-        print(f'"its pickle rick boom big reveal" {validated_data}')
-        # voting_system = VotingCountSystem(user=instance.user, data=validated_data)
-        # instance = voting_system.update_vote()
-        print(instance.action_type)
-        instance.action_type = validated_data.get('action_type', instance.action_type)
-        print(instance.action_type)
-        instance.save()
-
-        return instance
-

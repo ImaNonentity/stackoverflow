@@ -1,15 +1,15 @@
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from rest_framework import status, serializers
 from user_profile.models import User, TITLES, NEWBIE, APPRENTICE, THINKER, MASTER, GENIUS, HIGHER_INTELLIGENCE
 from social.models import Question, Answer, Comment
-import datetime
+# import datetime
+from datetime import datetime, date, time, timedelta, timezone
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from .models import Vote
 
-
-# TODO: catch exceptions on UNIQUE constraint failed (IntegrityError at /vote/create)
 
 class VotingCountSystem:
     """ Voting Count System Logic """
@@ -17,6 +17,8 @@ class VotingCountSystem:
     def __init__(self, user, data):
         self.content_object = data['content_object']
         self.action_type = data['action_type']
+        self.content_type = data['content_type']
+        self.object_id = data['object_id']
         self.data = data
         self.user = user
         self.vote = 0
@@ -24,38 +26,77 @@ class VotingCountSystem:
         self.obj = None
         self.number = 0
 
-    def update_vote(self):
-        new_action_type = self.data['action_type']
-        vote = self.content_object.vote.get(user=self.user)
-        if vote.action_type == new_action_type:
-            self.action_type = 0
+    def validate_user(self):
+        if self.user.rating < 50:
+            raise serializers.ValidationError(f"{self.user.username.title()}, "
+                                              f"you can't vote until your rating reaches 50."
+                                              f" Your current rating is - {self.user.rating}.")
+        else:
+            pass
 
-        vote.action_type = self.action_type
-        vote.save()
-        return vote
+    # TODO: что-то не так с проверкой, протестить на вопросах, которым месяц +
+    # Голосовать можно в течении 1 месяца, с даты публикации вопроса, для ответа - бессрочно
+    def validate_vote_create(self):
+        # try:
+        #     previous_vote = self.content_object.vote.filter(user=self.user).latest('created_at')
+        # except ObjectDoesNotExist:
+        #     pass
+        current_date = date.today()
+        current_month = current_date.month
+        last_month = current_month - 1 if current_month != 1 else 12
+        today_a_month_ago = date(current_date.year, last_month, current_date.day)
+        print(self.content_type == "question", self.content_type)
+        if self.content_type == "Question":
+            active_questions = Question.objects.filter(created_at__range=[today_a_month_ago, current_date])\
+                .values_list('id', flat=True)
+            current_question = self.data
+            print(active_questions)
+            print(int(current_question.get('object_id')))
+            if int(current_question.get('object_id')) not in active_questions:
+                raise ValidationError(f'{self.user.username.title()}, '
+                                      f'the time for voting for this question has expired')
+            pass
+        pass
 
+    # TODO: доработать выборку времени
+    # Переголосовать можно в течении 3 часов, одинаково для вопросов и ответов
+    def validate_vote_update(self):
+        try:
+            previous_vote = self.content_object.vote.filter(user=self.user).latest('created_at')
+            current_vote = self.data
+            current_hour = datetime.now().hour
+            start_hour = current_hour - 3 if current_hour != 1 else 24
+            active_votes = Vote.objects.filter(user=self.user, created_at__hour__range=[start_hour, current_hour])\
+                .values_list('id', flat=True)
 
-# TODO: написать валидацию юзера.
-# Голосовать можно, если рейтинг пользователя >= 50
+            print(f'"ACTIVE VOTE IDS"  {active_votes}')
+            print(f'"PREVIOUS VOTE": {previous_vote}')
+            print(f'"CURRENTVOTE": {current_vote}')
+            if previous_vote.id not in active_votes:
+                raise ValidationError(f'{self.user.username.title()}, '
+                                      f'unfortunately, you can only re-vote within 3 hours')
+            pass
+        except ObjectDoesNotExist:
+            pass
+        pass
 
-# за вопросы:
-# Голосовать можно в течении 1 месяца, с даты публикации вопроса
-# Переголосовать можно в течение 3 часов
+    def validate_vote(self):
+        try:
+            previous_vote = self.content_object.vote.filter(user=self.user).latest('created_at')
+            new_action_type = self.data['action_type']
+            if int(previous_vote.action_type) == int(new_action_type):
+                self.data['action_type'] = 0
+            current_vote = self.data
+        except ObjectDoesNotExist:
+            current_vote = self.data
+        return current_vote
 
-# за ответы:
-# Переголосовать можно в течении 3 часов
-# Голосование за ответ бессрочное
-
-    # @receiver(pre_save, sender=Vote)
-    # def custom_pre_save_vote(sender, instance: Vote, **kwargs):
-    #     """ Custom pre_save Signal for Votes """
-    #     previous = Vote.objects.filter(
-    #         user=instance.user,
-    #         content_object=instance.content_object
-    #     ).latest(updated_at=instance.updated_at)
-    #     if previous:
-    #         if previous.action_type == instance.action_type:
-    #             instance.action_type = ('0', 0)
+    def execute(self):
+        """ RUN SYSTEM """
+        self.validate_user()
+        self.validate_vote_create()
+        self.validate_vote_update()
+        return self.validate_vote()
 
 
 class RatingCountSystem:
@@ -82,11 +123,12 @@ class RatingCountSystem:
 
     def validate_user(self):
         today_records = Question.objects.filter(user=self.user,
-                                                created_at__date=datetime.date.today()).count()
+                                                created_at__date=date.today()).count() + 1
         if self.user.role:
-            if today_records >= int(self.user.role):
+            if today_records > int(self.user.role):
+                limit = int(self.user.role) + 1
                 raise serializers.ValidationError(f'{self.user.username}, '
-                                                  f'your limit is {self.user.role} record(s) per day')
+                                                  f'your limit is {limit} record(s) per day')
             return Response(self.data, status=status.HTTP_201_CREATED)
 
     def check_rank(self):
