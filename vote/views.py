@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import Vote
 from .serializers import VoteOutputSerializer, VoteSerializer
-from .services import RatingCountSystem, VotingCountSystem
+from .services import RatingUpdateSystem, VotingCountSystem
 from django.contrib.contenttypes.models import ContentType
 from django.db import IntegrityError
 
@@ -44,8 +44,6 @@ class VoteUserView(APIView):
     """ Check Votes by User ID """
 
     def get(self, request, pk):
-        queryset = Vote.objects.filter(user__pk=self.request.user.id).distinct()
-            # .distinct('object_id' + 'content_type')
-        # для постгрешки
-        serializer = VoteSerializer(queryset, many=True)
+        votes = Vote.objects.filter(user__pk=self.request.user.id)
+        serializer = VoteSerializer(votes, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

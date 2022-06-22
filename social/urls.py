@@ -1,16 +1,12 @@
 from django.urls import path
-# from rest_framework_swagger.views import get_swagger_view
-#
-# schema_view = get_swagger_view(title='Pastebin API')
-
 from .views import (
-    QuestionVoteView,
     QuestionByUserListView,
     QuestionsListView,
     QuestionView,
     QuestionCreateView,
     QuestionUpdateView,
     QuestionDeleteView,
+    GetQuestionsByTagView,
     AnswerByUserView,
     AnswerUpdateView,
     AnswerDeleteView,
@@ -20,7 +16,6 @@ from .views import (
     CommentDeleteView,
     CreateTagView,
     GetTagInfoView,
-    GetTagView,
     DeleteTagView,
     GetSingleTagInfoView,
 
@@ -34,9 +29,7 @@ urlpatterns = [
     path('question/new', QuestionCreateView.as_view(), name="question_new"),
     path('question/<id>/update', QuestionUpdateView.as_view(), name="question_update"),
     path('question/<id>/delete', QuestionDeleteView.as_view(), name="question_delete"),
-    path('questions/tagged/<id>/', GetTagView.as_view(), name="questions-by-tag"),
-    path('question/<id>/vote/', QuestionVoteView.as_view(), name='question_vote'),
-
+    path('questions/tagged/<id>/', GetQuestionsByTagView.as_view(), name="questions-by-tag"),
 
     # ANSWER URLS
     path('answer/<id>/', AnswerByUserView.as_view(), name="answer_detail"),
@@ -52,6 +45,6 @@ urlpatterns = [
     # TAG URLS
     path('tag/new', CreateTagView.as_view(), name="create_tag"),
     path('tag/list', GetTagInfoView.as_view(), name="tag_list"),
-    path('tag/<slug:slug>', GetSingleTagInfoView.as_view(), name="tag_info"),
-    path('tag/<slug:slug>/delete', DeleteTagView.as_view(), name='delete_tag')
+    path('tag/<id>', GetSingleTagInfoView.as_view(), name="tag_info"),
+    path('tag/<id>/delete', DeleteTagView.as_view(), name='delete_tag')
     ]

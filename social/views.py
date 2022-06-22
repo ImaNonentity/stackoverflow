@@ -9,13 +9,11 @@ from rest_framework.permissions import IsAdminUser, AllowAny, IsAuthenticated
 from rest_framework.fields import CurrentUserDefault
 from user_profile.permissions import IsOwnerUser, ReadOnly
 from user_profile.models import User
-from vote.services import RatingCountSystem
+from vote.services import RatingUpdateSystem, VotingCountSystem
 from .models import Question, Answer, Comment, Tag
 from .serializers import (
     CreateQuestionSerializer,
-    QuestionSerializer,
     SimpleQuestionSerializer,
-    AnswerSerializer,
     AnswerDetailSerializer,
     CreateAnswerSerializer,
     UpdateAnswerSerializer,
@@ -33,7 +31,7 @@ class QuestionByUserListView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated & ReadOnly]
 
-    @swagger_auto_schema(responses={50: QuestionSerializer(many=True)})
+    @swagger_auto_schema(responses={50: SimpleQuestionSerializer(many=True)})
     def get(self, request, pk):
         question = Question.objects.filter(user__pk=self.request.user.id)
         serializer = SimpleQuestionSerializer(question, many=True)
@@ -46,7 +44,7 @@ class QuestionsListView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [ReadOnly]
 
-    @swagger_auto_schema(responses={50: QuestionSerializer(many=True)})
+    @swagger_auto_schema(responses={50: SimpleQuestionSerializer(many=True)})
     def get(self, request):
         question = Question.objects.all()
         serializer = SimpleQuestionSerializer(question, many=True)
@@ -65,6 +63,7 @@ class QuestionView(APIView):
             serializer = SimpleQuestionSerializer(question)
         except Question.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
+
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -84,7 +83,7 @@ class QuestionCreateView(APIView):
     ))
     def post(self, request):
         serializer = CreateQuestionSerializer(data=request.data)
-        rating_system = RatingCountSystem(user=request.user, data=request.data)
+        rating_system = RatingUpdateSystem(user=request.user, data=request.data)
         rating_system.validate_user()
         rating_system.check_rank()
         if serializer.is_valid():
@@ -116,18 +115,6 @@ class QuestionUpdateView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# TEST VIEW
-class QuestionVoteView(APIView):
-
-    def post(self, request, id):
-        question = Question.objects.get(id=id, user=request.user)
-        serializer = QuestionSerializer(question, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
 class QuestionDeleteView(APIView):
     """ Delete Question """
 
@@ -144,6 +131,20 @@ class QuestionDeleteView(APIView):
             data["failure"] = "delete failed"
         return Response(data=data)
 
+# TODO: не работает, пофиксить
+class GetQuestionsByTagView(APIView):
+    """ Get all Questions by Tag """
+
+    authentication_classes = []
+    permission_classes = [ReadOnly]
+
+    def get(self, request, id):
+        tag = Tag.objects.filter(id=id)
+        question = Question.objects.filter(tag=tag)
+        serializer = SimpleQuestionSerializer(tag, question)
+        if serializer.is_valid():
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 # ANSWER VIEWS
 
@@ -153,7 +154,7 @@ class AnswerByUserView(APIView):
     authentication_classes = []
     permission_classes = [ReadOnly]
 
-    @swagger_auto_schema(responses={50: QuestionSerializer(many=True)})
+    @swagger_auto_schema(responses={50: AnswerDetailSerializer(many=True)})
     def get(self, request, id):
         user = User.objects.get(id=id)
         answer = Answer.objects.filter(user=user)
@@ -175,7 +176,7 @@ class AnswerCreateView(APIView):
     def post(self, request):
         user = User.objects.get(pk=request.user.id)
         serializer = CreateAnswerSerializer(data=request.data)
-        rating_system = RatingCountSystem(user=request.user, data=request.data)
+        rating_system = RatingUpdateSystem(user=request.user, data=request.data)
         rating_system.check_rank()
         if serializer.is_valid():
             serializer.save(user=user)
@@ -236,7 +237,7 @@ class CommentCreateView(APIView):
     ))
     def post(self, request):
         serializer = CommentSerializer(data=request.data)
-        rating_system = RatingCountSystem(user=request.user, data=request.data)
+        rating_system = RatingUpdateSystem(user=request.user, data=request.data)
         rating_system.check_rank()
         if serializer.is_valid():
             serializer.save(user=self.request.user)
@@ -342,17 +343,3 @@ class DeleteTagView(APIView):
         else:
             data["failure"] = "delete failed"
         return Response(data=data)
-
-
-class GetTagView(APIView):
-    """ Get all Questions by Tag """
-
-    authentication_classes = []
-    permission_classes = [ReadOnly]
-
-    def get(self, request, id):
-        tag = Tag.objects.filter(id=id)
-        question = Question.objects.filter(tag=tag)
-        serializer = QuestionSerializer(tag, question)
-        if serializer.is_valid():
-            return Response(serializer.data, status=status.HTTP_200_OK)

@@ -53,7 +53,7 @@ class SimpleQuestionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Question
-        fields = ['id', 'user', 'title', 'content', 'created_at', 'updated_at', 'tag']
+        fields = ['title', 'content', 'tag', 'user', 'vote_count']
 
 
 class CreateQuestionSerializer(serializers.ModelSerializer):
@@ -72,56 +72,19 @@ class CreateQuestionSerializer(serializers.ModelSerializer):
         return question
 
 
-class QuestionSerializer(serializers.ModelSerializer):
-    title = serializers.CharField(read_only=True)
-    content = serializers.CharField(read_only=True)
-    tag = SimpleTagSerializer(read_only=True)
-
-    class Meta:
-        model = Question
-        fields = ['user', 'title', 'content', 'tag']
-
-    def validate(self, question):
-        try:
-            title = question['title']
-            if len(title) < MIN_TITLE_LENGTH:
-                raise serializers.ValidationError(
-                    {"response": "Enter a title longer than " + str(MIN_TITLE_LENGTH) + " characters."})
-
-            content = question['content']
-            if len(content) < MIN_BODY_LENGTH:
-                raise serializers.ValidationError(
-                    {"response": "Enter a body longer than " + str(MIN_BODY_LENGTH) + " characters."})
-        except KeyError:
-            raise serializers.ValidationError({"response": "You must have a title and content."})
-        return question
-
-
 # ANSWER SERIALIZERS
 
 class AnswerDetailSerializer(serializers.ModelSerializer):
-    upvote = serializers.IntegerField(source='upvote.count')
-    downvote = serializers.IntegerField(source='downvote.count')
 
     class Meta:
         model = Answer
-        fields = ['id', 'user', 'question', 'content', 'created_at', 'updated_at', 'upvote', 'downvote']
+        fields = ['id', 'user', 'question', 'content', 'created_at', 'updated_at', 'vote_count']
 
 
 class UpdateAnswerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Answer
         fields = ['user', 'content']
-
-    def validate(self, answer):
-        try:
-            content = answer['content']
-            if len(content) < MIN_BODY_LENGTH:
-                raise serializers.ValidationError(
-                    {"response": "Enter a body longer than " + str(MIN_BODY_LENGTH) + " characters."})
-        except KeyError:
-            pass
-        return answer
 
 
 class CreateAnswerSerializer(serializers.ModelSerializer):
@@ -130,38 +93,3 @@ class CreateAnswerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Answer
         fields = ['user', 'content', 'question']
-
-    # def save(self, answer):
-    #     try:
-    #         content = answer['content']
-    #         if len(content) < MIN_BODY_LENGTH:
-    #             raise serializers.ValidationError(
-    #                 {"response": "Enter a body longer than" + str(MIN_BODY_LENGTH) + " characters."}
-    #             )
-    #     except KeyError:
-    #         pass
-    #     answer = Answer(
-    #         id=id,
-    #         usere=self.validated_data['user'],
-    #         question=self.validated_data['question'],
-    #         content=content,
-    #     )
-    #     answer.save()
-    #     return answer
-
-
-class AnswerSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Answer
-        fields = '__all__'
-
-
-# class SerializerClassRequestContextMixin(object):
-#
-#     def get_context_serializer_class(self, klass, instance, **kwargs):
-#         context = self.get_serializer_context()
-#         supplied_context = kwargs.pop('context', {})
-#         context.update(supplied_context)
-#         return klass(instance, context=context, **kwargs)
-
-
