@@ -257,7 +257,6 @@ class CommentUpdateView(APIView):
                     'object_id': openapi.Schema(type=openapi.TYPE_STRING, description='object_id')}
     ))
     def put(self, request, id):
-        # user = User.objects.get(id=request.user.id)
         comment = Comment.objects.get(id=id)
         serializer = CommentSerializer(comment, data=request.data)
         if serializer.is_valid():

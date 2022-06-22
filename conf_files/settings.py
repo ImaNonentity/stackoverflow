@@ -210,6 +210,8 @@ LOGIN_REDIRECT_URL = '/'
 
 ACCOUNT_USERNAME_REQUIRED = False
 
+# GDAL_LIBRARY_PATH = r'C:\OSGeo4W64\bin\gdal301.dll'
+
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'APP': {

@@ -1,6 +1,8 @@
 # from django.contrib.contenttypes.models import ContentType
 # from rest_framework import serializers
 # from .models import Vote
+# from django.contrib.gis.gdal.raster import source
+
 from .models import Vote
 from rest_framework import serializers
 from django.core.exceptions import ValidationError
@@ -37,3 +39,16 @@ class VoteOutputSerializer(serializers.ModelSerializer):
                                  f'- action type must be in {", ".join(Vote.RATING_CHOICES_LIST_STR)}']}
             )
         return attrs
+
+
+class VoteSerializer(serializers.ModelSerializer):
+    user = serializers.ReadOnlyField(source='user.username')
+    content_type = serializers.SlugRelatedField(queryset=ContentType.objects.filter(model__in=CONTENT_TYPES_MODEL),
+                                                slug_field='model')
+    object_id = serializers.IntegerField()
+    action_type = serializers.IntegerField()
+    id = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Vote
+        fields = ['id', 'user', 'object_id', 'content_type', 'action_type']
