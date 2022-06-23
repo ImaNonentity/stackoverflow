@@ -13,11 +13,17 @@ class SimpleUserSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    email = serializers.CharField(max_length=50, required=False)
     profile_photo = serializers.ImageField(required=False)
+    birth_date = serializers.DateField(required=False)
+    first_name = serializers.CharField(max_length=25, required=False)
+    last_name = serializers.CharField(max_length=30, required=False)
 
     class Meta:
         model = User
-        fields = ['id', 'email', 'username', 'profile_photo', 'last_login', 'birth_date', 'role', 'rating']
+        fields = ['id', 'email', 'username', 'profile_photo', 'last_login', 'birth_date',
+                  'first_name', 'last_name', 'role', 'rating', 'questions', 'answers']
+        depth = 1
 
 
 class UserAvatarSerializer(serializers.ModelSerializer):
@@ -26,6 +32,10 @@ class UserAvatarSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['profile_photo', ]
+
+
+
+
 
     # def save(self, *args, **kwargs):
     #     if self.instance.profile_photo:
@@ -55,5 +65,3 @@ class UserAvatarSerializer(serializers.ModelSerializer):
 #         user.set_password(password)
 #         user.save()
 #         return user
-
-

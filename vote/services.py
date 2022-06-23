@@ -33,20 +33,6 @@ class VotingCountSystem:
                                               f" Your current rating is - {self.user.rating}.")
         return
 
-    # TODO: переписать с таймдельтой
-    # TODO: только для вопросов, проверка в самом начале
-    # def validate_vote_create(self):
-    #     current_date = date.today()
-    #     current_month = current_date.month
-    #     last_month = current_month - 1 if current_month != 1 else 12
-    #     today_a_month_ago = date(current_date.year, last_month, current_date.day)
-    #     if self.content_type == ContentType.objects.get_for_model(Question):
-    #         active_questions = Question.objects.filter(created_at__range=[today_a_month_ago, current_date]) \
-    #             .values_list('id', flat=True)
-    #         current_question = self.data
-    #         if int(current_question.get('object_id')) not in active_questions:
-    #             raise ValidationError(f'{self.user.username.title()}, '
-    #                                   f'the time for voting for this question has expired')
     def validate_vote_create(self):
         if self.content_type == ContentType.objects.get_for_model(Question):
             if (self.content_object.created_at + timedelta(hours=730)).timestamp() < datetime.now().timestamp():
@@ -68,7 +54,6 @@ class VotingCountSystem:
                 raise ValidationError(f'{self.user.username.title()}, '
                                       f'unfortunately, you can only re-vote within 3 hours')
 
-    # +1 +1 = ничего, -1 -1 = ничего | +1 -1 = 0, -1 +1 = 0 | +1 -1 -1 = -1, -1 +1 +1 = +1.
     def validate_vote(self):
         try:
             previous_vote = self.latest_vote

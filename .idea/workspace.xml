@@ -1,13 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="841feb36-c2e6-4656-891b-5972871b5f1d" name="Changes" comment="">
+    <list default="true" id="841feb36-c2e6-4656-891b-5972871b5f1d" name="Changes" comment="--fixed vote services">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/social/services.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/social/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/social/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/conf_files/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/conf_files/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/social/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/social/models.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/sqlite3.db" beforeDir="false" afterPath="$PROJECT_DIR$/sqlite3.db" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user_profile/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/user_profile/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user_profile/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/user_profile/serializers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user_profile/services.py" beforeDir="false" afterPath="$PROJECT_DIR$/user_profile/services.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user_profile/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/user_profile/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user_profile/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/user_profile/views.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vote/services.py" beforeDir="false" afterPath="$PROJECT_DIR$/vote/services.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vote/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/vote/views.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -16,6 +20,7 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RESET_MODE" value="HARD" />
   </component>
   <component name="ProjectId" id="2ACAIdFKTCIaftzhZZRTQf2xUPb" />
   <component name="ProjectViewState">
@@ -122,6 +127,17 @@
     </task>
     <option name="localTasksCounter" value="8" />
     <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="--gitignore" />

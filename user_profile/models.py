@@ -7,10 +7,9 @@ from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
+from django.db.models import JSONField
 
-# from social.models import Question, Answer, Comment
 from .services import uploading
-
 
 NEWBIE = '0'
 APPRENTICE = '1'
@@ -28,6 +27,13 @@ TITLES = [
     [HIGHER_INTELLIGENCE, 'Higher Intelligence']
 ]
 
+def profile_rating_bonuses():
+    return dict(
+        birth_date=False,
+        profile_photo=False,
+        first_name=False,
+        last_name=False
+    )
 
 class User(AbstractUser):
     email = models.EmailField(max_length=50, verbose_name='email', unique=True)
@@ -37,13 +43,17 @@ class User(AbstractUser):
     rating = models.SmallIntegerField(default=20, null=True, blank=True)
     slug = models.SlugField(blank=True, null=True, unique=True)
     email_confirmation = models.BooleanField(default=False)
+    profile_rating_bonuses = models.JSONField(default=profile_rating_bonuses)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
 
     def __str__(self):
-        return f'{self.email}, {self.username}, your rank - {self.role}'
+        return f'{self.email}, {self.username}, id = {self.id}, your rank - {self.role}'
 
+    @property
+    def questions(self):
+        return ['questions list']
 
     # def has_perm(self, perm, obj=None):
     #     return self.is_admin

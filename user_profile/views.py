@@ -14,6 +14,7 @@ from rest_framework.views import APIView
 
 from .serializers import UserAvatarSerializer, UserSerializer
 from .models import User
+from .services import UserProfileService
 from django.contrib.auth import authenticate
 from django.conf import settings
 from drf_yasg.utils import swagger_auto_schema
@@ -33,7 +34,7 @@ class UploadUserImageView(APIView):
     """ Upload User Avatar """
 
     # permission_classes = [IsOwnerUser]
-    parser_classes = (MultiPartParser, )
+    parser_classes = (MultiPartParser,)
 
     @swagger_auto_schema(
         operation_description='Upload your avatar image',
@@ -56,24 +57,7 @@ class UploadUserImageView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-#
-# class UploadUserImageView(ListAPIView):
-#     parser_classes = [MultiPartParser, FormParser]
-#     serializer_class = UserAvatarSerializer
-#
-#     @swagger_auto_schema(
-#             operation_description='Upload your avatar image',
-#             operation_id='Upload avatar file',
-#             manual_parameters=[openapi.Parameter(
-#                 name="file",
-#                 in_=openapi.IN_FORM,
-#                 type=openapi.TYPE_FILE,
-#                 required=True,
-#                 description="Image"
-#             )],
-#             responses={400: 'Invalid data in uploaded file',
-#                        200: 'Success'},
-#         )
+
 #     def post(self, request, *args, **kwargs):
 #         file = request.data['profile_photo']
 #         user = User.objects.get(pk=pk)
@@ -82,7 +66,61 @@ class UploadUserImageView(APIView):
 #         return Response("Image updated!", status=status.HTTP_200_OK)
 
 
+class UserProfileUpdateView(APIView):
+    """ Update User Profile """
 
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsOwnerUser | IsAdminUser]
+
+    @swagger_auto_schema(request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'username': openapi.Schema(type=openapi.TYPE_STRING, description='username'),
+            'birth_date': openapi.Schema(type=openapi.TYPE_STRING, description='birth_date'),
+            'first_name': openapi.Schema(type=openapi.TYPE_STRING, description='first_name'),
+            'last_name': openapi.Schema(type=openapi.TYPE_STRING, description='last_name'),
+        }
+    ))
+    def put(self, request, pk):
+        user = User.objects.get(id=pk)
+        serializer = UserSerializer(user, data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=user)
+            us = UserProfileService(user)
+            us.save_profile()
+            self.check_object_permissions(request, user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserDetailView(APIView):
+    """ Get User Profile Details """
+
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated & ReadOnly]
+
+    def get(self, request, pk):
+        data = {}
+        try:
+            user = User.objects.get(id=pk)
+        except User.DoesNotExist:
+            data["error"] = "User with this ID does not exist."
+            return Response(data=data, status=status.HTTP_404_NOT_FOUND)
+        serializer = UserSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class UserListView(APIView):
+    """ Get Users List For Admin """
+
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        user = User.objects.all()
+        serializer = UserSerializer(user, many=True)
+        self.check_object_permissions(request, user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 # USER PROFILE VIEWS
 
@@ -113,39 +151,7 @@ class UploadUserImageView(APIView):
 #             serializer.save()
 #             data["success"] = "update successful"
 #             return Response(data=data)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-#
-#
-#
-#
-# class UserDetailView(APIView):
-#     """ Get User Profile Details """
-#
-#     authentication_classes = [TokenAuthentication]
-#     permission_classes = [IsAuthenticated & ReadOnly]
-#
-#     def get(self, request, pk):
-#         try:
-#             user = User.objects.get(id=pk)
-#         except User.DoesNotExist:
-#             return Response(status=status.HTTP_404_NOT_FOUND)
-#
-#         serializer = UserSerializer(user)
-#         return Response(serializer.data, status=status.HTTP_200_OK)
-#
-#
-# class UserListView(APIView):
-#     """ Get Users List For Admin """
-#
-#     authentication_classes = [TokenAuthentication]
-#     permission_classes = [IsAdminUser]
-#
-#     def get(self, request):
-#         user = User.objects.all()
-#         serializer = UserSerializer(user, many=True)
-#         self.check_object_permissions(request, user)
-#         return Response(serializer.data, status=status.HTTP_200_OK)
-#
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)#
 #
 # class DeleteUserView(APIView):
 #     """ Delete User """

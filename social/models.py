@@ -1,11 +1,9 @@
 from django.db import models
-from django.conf import settings
+from conf_files import settings
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.fields import GenericForeignKey
-from user_profile.models import User
 from vote.models import Vote
-
 
 class Tag(models.Model):
     id = models.BigAutoField(primary_key=True)
@@ -22,7 +20,7 @@ class Tag(models.Model):
 
 class Comment(models.Model):
     id = models.BigAutoField(primary_key=True)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="comments")
     content = models.TextField(max_length=1000, null=True, blank=True)
     parent = models.ForeignKey('self', on_delete=models.SET_NULL, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='answered')
@@ -44,7 +42,7 @@ class Comment(models.Model):
 
 class Question(models.Model):
     id = models.BigAutoField(primary_key=True)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="questions")
     title = models.CharField(max_length=100, null=True, blank=True)
     content = models.TextField(max_length=1000, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Asked')
@@ -64,7 +62,7 @@ class Question(models.Model):
 
 class Answer(models.Model):
     id = models.BigAutoField(primary_key=True)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="answers")
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     content = models.TextField(max_length=2000, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='answered')

@@ -30,10 +30,14 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     # my apps
-    'stackoverflow.apps.StackoverflowConfig',
-    'user_profile.apps.UserProfileConfig',
-    'social.apps.SocialConfig',
-    'vote.apps.VoteConfig',
+    # 'stackoverflow.apps.StackoverflowConfig',
+    # 'user_profile.apps.UserProfileConfig',
+    # 'social.apps.SocialConfig',
+    # 'vote.apps.VoteConfig',
+    'stackoverflow',
+    'user_profile',
+    'social',
+    'vote',
 
     # Django apps
     'django.contrib.admin',
