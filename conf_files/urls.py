@@ -22,6 +22,8 @@ from drf_yasg.views import get_schema_view
 from django.conf.urls.static import static
 from django.conf import settings
 
+from djoser.views import UserViewSet
+
 schema_view = get_schema_view(
     openapi.Info(
         title="Stackoverflow API",
@@ -38,7 +40,15 @@ schema_view = get_schema_view(
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('ui', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-    path('auth/', include('djoser.urls')),
+    path('auth/register/', UserViewSet.as_view({'post': 'create'}), name="register"),
+    # path("auth/login/", UserViewSet.as_view({'post': 'login'}), name="login"),
+    path('auth/v1/token/login', include('djoser.urls.authtoken'), name="login"),
+    path("auth/resend-activation/", UserViewSet.as_view({"post": "resend_activation"}), name="resend_activation"),
+    path("auth/activation/<str:uid>/<str:token>/", UserViewSet.as_view({"post": "activate"}), name="activate"),
+    path("auth/reset-password/", UserViewSet.as_view({"post": "reset_password"}), name="reset_password"),
+    path("auth/reset-password-confirm/<str:uid>/<str:token>/", UserViewSet.as_view({"post": "reset_password_confirm"}),
+         name="reset_password_confirm"),
+    # path('auth/', include('djoser.urls')),
     path('accounts/', include('allauth.urls')),
     path('', include('djoser.urls.authtoken')),
     path('', include('stackoverflow.urls')),
