@@ -27,6 +27,7 @@ TITLES = [
     [HIGHER_INTELLIGENCE, 'Higher Intelligence']
 ]
 
+
 def profile_rating_bonuses():
     return dict(
         birth_date=False,
@@ -34,6 +35,7 @@ def profile_rating_bonuses():
         first_name=False,
         last_name=False
     )
+
 
 class User(AbstractUser):
     email = models.EmailField(max_length=50, verbose_name='email', unique=True)
@@ -51,9 +53,9 @@ class User(AbstractUser):
     def __str__(self):
         return f'{self.email}, {self.username}, id = {self.id}, your rank - {self.role}'
 
-    @property
-    def questions(self):
-        return ['questions list']
+    # @property
+    # def questions(self):
+    #     return ['questions list']
 
     # def has_perm(self, perm, obj=None):
     #     return self.is_admin

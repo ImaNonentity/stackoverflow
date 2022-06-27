@@ -246,3 +246,4 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
+locals = locals()
