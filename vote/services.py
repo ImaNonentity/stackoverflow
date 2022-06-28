@@ -15,12 +15,11 @@ from .models import Vote
 class VotingCountSystem:
     """ Voting Count System Logic """
 
-    def __init__(self, user, data):
-        self.content_object = data['content_object']
-        self.action_type = data['action_type']
-        self.content_type = data['content_type']
-        self.object_id = data['object_id']
-        self.data = data
+    def __init__(self, user, content_object, action_type, content_type, object_id):
+        self.content_object = content_object
+        self.action_type = action_type
+        self.content_type = content_type
+        self.object_id = object_id
         self.user = user
         self.vote = 0
         self.obj_votes = 0
@@ -37,7 +36,10 @@ class VotingCountSystem:
         if self.content_type == ContentType.objects.get_for_model(Question):
             if (self.content_object.created_at + timedelta(hours=730)).timestamp() < datetime.now().timestamp():
                 raise ValidationError(f'{self.user.username.title()}, '
-                                      f'the time for voting for this question has expired')
+                                      f'the time for voting for this question has expired. :( ')
+            return f'{self.user.username.title()}, you can vote for this question.'
+        else:
+            return f'{self.user.username.title()}, you can vote for this answer.'
 
     @property
     def latest_vote(self):
@@ -53,21 +55,24 @@ class VotingCountSystem:
             if (latest_vote.created_at + timedelta(hours=3)).timestamp() < datetime.now().timestamp():
                 raise ValidationError(f'{self.user.username.title()}, '
                                       f'unfortunately, you can only re-vote within 3 hours')
+            return f'{self.user.username.title()}, you can re-vote'
 
     def validate_vote(self):
         try:
             previous_vote = self.latest_vote
-            new_action_type = self.data['action_type']
+            print(previous_vote)
+            new_action_type = self.action_type
+            print(new_action_type)
             if int(previous_vote.action_type) == 1 and int(new_action_type) == -1:
-                self.data['action_type'] = 0
+                self.action_type = 0
             if int(previous_vote.action_type) == -1 and int(new_action_type) == 1:
-                self.data['action_type'] = 0
+                self.action_type = 0
             if int(previous_vote.action_type) == int(new_action_type):
                 raise ValidationError(f"{self.user.username.title()}, "
                                       f"you've already cast your vote!")
-            current_vote = self.data
+            current_vote = self.action_type
         except ObjectDoesNotExist:
-            current_vote = self.data
+            current_vote = self.action_type
         return current_vote
 
     def vote_count(self):

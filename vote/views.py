@@ -24,7 +24,12 @@ class VoteAddView(APIView):
     def post(self, request):
         serializer = VoteOutputSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        count_system = VotingCountSystem(user=self.request.user, data=serializer.validated_data)
+        val_data = serializer.validated_data
+        count_system = VotingCountSystem(user=self.request.user,
+                                         content_object=val_data.get('content_object'),
+                                         content_type=val_data.get('content_type'),
+                                         object_id=val_data.get('object_id'),
+                                         action_type=val_data.get('action_type'))
         vote_obj = count_system.execute()
         serializer_data = VoteOutputSerializer(vote_obj)
         serializer.save(user=request.user)

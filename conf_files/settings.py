@@ -103,7 +103,11 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': 'sqlite3.db',
+        'TEST': {
+            'NAME': 'test_DB_name'
+        }
     }
+
 }
 
 # Password validation
