@@ -2,20 +2,16 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="841feb36-c2e6-4656-891b-5972871b5f1d" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/social/tests/test_answer.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/social/tests/test_comment.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/social/tests/test_question.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/user_profile/tests/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/user_profile/tests/test_permissions.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/user_profile/tests/test_user_profile.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/vote/tests.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/conf_files/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/conf_files/settings.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vote/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/vote/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/social/tests/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/user_profile/tests.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/social/tests/test_answer.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/social/tests/test_comment.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/social/tests/test_question.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/user_profile/tests/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/user_profile/tests/test_permissions.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/user_profile/tests/test_user_profile.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/vote/services.py" beforeDir="false" afterPath="$PROJECT_DIR$/vote/services.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vote/tests/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/social/tests/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vote/tests/test_vote.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/vote/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/vote/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vote/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/vote/tests.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -52,9 +48,9 @@
       <recent name="C:\Users\child\PycharmProjects\stackoverflow\tests" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.tests">
-    <configuration name="manage" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
-      <module name="stackoverflow-main" />
+  <component name="RunManager" selected="Python.tests user">
+    <configuration name="tests user" type="PythonConfigurationType" factoryName="Python">
+      <module name="djangoProject" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -76,7 +72,7 @@
         </ENTRIES>
       </EXTENSION>
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/manage.py" />
-      <option name="PARAMETERS" value="runserver" />
+      <option name="PARAMETERS" value="test user_profile" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -107,7 +103,7 @@
         </ENTRIES>
       </EXTENSION>
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/manage.py" />
-      <option name="PARAMETERS" value="test" />
+      <option name="PARAMETERS" value="test vote" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -266,8 +262,11 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Python.manage" />
+      <item itemvalue="Python.tests user" />
       <item itemvalue="Python.tests" />
+      <item itemvalue="Python tests.Python tests for test_vote.TestVoteServices" />
+      <item itemvalue="Python tests.Python tests for test_vote.TestVoteServices.test_can_create_vote_user_rating_validation" />
+      <item itemvalue="Python tests.Python tests for vote.tests.tests.TestVoteServices" />
       <item itemvalue="Python tests.Python tests for tests.TestVoteServices" />
       <item itemvalue="Python tests.Python tests for tests.TestVoteServices.test_validate_question_access_to_vote" />
       <item itemvalue="Python tests.Tests" />
@@ -276,9 +275,9 @@
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python tests.Python tests for tests.TestVoteServices" />
         <item itemvalue="Python tests.Tests" />
         <item itemvalue="Python tests.Python tests in tests.py" />
-        <item itemvalue="Python tests.Python tests for tests.TestVoteServices" />
         <item itemvalue="Python tests.Python tests for tests.TestVoteServices.test_validate_question_access_to_vote" />
         <item itemvalue="Python tests.Python tests for vote.tests.tests.TestVoteServices" />
       </list>
@@ -365,7 +364,14 @@
       <option name="project" value="LOCAL" />
       <updated>1656356983899</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="--new tests for voting system">
+      <created>1656432388665</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1656432388665</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -391,6 +397,7 @@
     <MESSAGE value="--added new User services &amp; views" />
     <MESSAGE value="--custom djoser urls with names" />
     <MESSAGE value="--added tests for voting system" />
-    <option name="LAST_COMMIT_MESSAGE" value="--added tests for voting system" />
+    <MESSAGE value="--new tests for voting system" />
+    <option name="LAST_COMMIT_MESSAGE" value="--new tests for voting system" />
   </component>
 </project>

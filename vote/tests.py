@@ -1,14 +1,9 @@
 from unittest import mock
-from unittest.mock import patch
 import datetime
 
 import django
 import os
 import unittest
-
-from social_core.backends import username
-
-from social.tests import test_question
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "conf_files.settings")
 django.setup()
@@ -18,19 +13,21 @@ from django.contrib.contenttypes.models import ContentType
 
 
 class MockUser:
-    def __init__(self, username, rating):
+    def __init__(self, username, rating: int):
         self.username = username
         self.rating = rating
 
 
 class MockVote:
-    def __init__(self, previous_vote, action_type):
-        self.previous_vote = previous_vote
+    def __init__(
+            self,
+            user: MockUser,
+            action_type: int,
+            created_at: datetime = datetime.datetime.now(),
+    ):
+        self.user = user
         self.action_type = action_type
-
-    @property
-    def latest_vote(self):
-        return 1
+        self.created_at = created_at
 
 
 class TestVoteServices(unittest.TestCase):
@@ -39,6 +36,7 @@ class TestVoteServices(unittest.TestCase):
         test_user = MockUser(username='testuser', rating=50)
         self.mock_user = mock.Mock(user=test_user, rating=50, return_value=None)
         self.object_id = mock.Mock(object_id=1)
+        self.action_type = 1
         self.content_object = mock.Mock(id=self.object_id, user=self.mock_user,
                                         title='Test title', content='Test content',
                                         created_at=datetime.datetime.strptime(
@@ -46,7 +44,6 @@ class TestVoteServices(unittest.TestCase):
                                             '%Y-%m-%d %H:%M:%S'
                                         ))
         resource_type = ContentType.objects.get(model='question')
-        self.action_type = 1
         self.instance = VotingCountSystem(user=self.mock_user, content_object=self.content_object,
                                           content_type=resource_type, object_id=self.object_id,
                                           action_type=self.action_type)
@@ -93,47 +90,269 @@ class TestVoteServices(unittest.TestCase):
         instance = self.instance.validate_vote_create()
         self.assertEqual(f'{self.mock_user.username.title()}, you can vote for this answer.', instance)
 
-    # # TODO: 'Mock' + 'datetime.timedelta'
-    # def test_validate_vote_can_update(self):
-    #     """ Изменять свой голос можно, если ему не больше 3х часов """
-    #     instance = self.instance.validate_vote_update()
-    #     VotingCountSystem.validate_vote_update(self.content_object)
-    #     self.assertLess(f'{self.mock_user.username.title()}, you can re-vote', instance)
-    #
-    # # TODO: 'Mock' + 'datetime.timedelta'
-    # def test_validate_vote_can_not_update(self):
-    #     """ Изменять свой голос нельзя, если ему больше 3х часов """
-    #     self.content_object.created_at = datetime.datetime.strptime(
-    #                                         '2022-06-27 15:25:48',
-    #                                         '%Y-%m-%d %H:%M:%S'
-    #                                         )
-    #     with self.assertRaises(Exception) as context:
-    #         self.assertLess(f'{self.mock_user.username.title()}, '
-    #                         f'unfortunately, you can only re-vote within 3 hours', str(context.exception))
+    # TODO: 'Mock' Answer | Question
+    def test_validate_vote_can_update(self):
+        """ Изменять свой голос можно, если ему не больше 3х часов """
+        previous_mock_vote = mock.Mock(user=self.mock_user, choose_rating='1',
+                                       created_at=datetime.datetime.strptime(
+                                           '2022-06-27 15:25:48',
+                                           '%Y-%m-%d %H:%M:%S'
+                                       ))
+        current_mock_vote = mock.Mock(user=self.mock_user, choose_rating='-1',
+                                      created_at=datetime.datetime.strptime(
+                                          '2022-06-27 17:25:48',
+                                          '%Y-%m-%d %H:%M:%S'
+                                      ))
+        self.instance = VotingCountSystem(
+            user=self.mock_user,
+            content_object=self.content_object,
+            action_type=1,
+            _latest_vote=previous_mock_vote,
+            current_time=current_mock_vote.created_at
+        )
+        instance = self.instance.validate_vote_update()
+        self.assertEqual(f'{self.mock_user.username.title()}, you can re-vote', instance)
 
-    # TODO: 'Mock'
-    def test_validate_vote_can_not_vote_alike(self):
-        """ Голосование дважды +1 или дважды -1 райзит ошибку """
+    # TODO: 'Mock' Answer | Question
+    def test_validate_vote_can_not_update(self):
+        """ Изменять свой голос нельзя, если ему больше 3х часов """
+        previous_mock_vote = MockVote(
+            user=self.mock_user,
+            action_type=1,
+            created_at=datetime.datetime.strptime(
+                '2022-03-27 10:25:48',
+                '%Y-%m-%d %H:%M:%S'
+            )
+        )
+        current_mock_vote = MockVote(
+            user=self.mock_user,
+            action_type=-1,
+            created_at=datetime.datetime.strptime(
+                '2022-03-27 17:25:48',
+                '%Y-%m-%d %H:%M:%S'
+            )
+        )
+        self.instance = VotingCountSystem(
+            user=self.mock_user,
+            content_object=self.content_object,
+            action_type=1,
+            _latest_vote=previous_mock_vote,
+            current_time=current_mock_vote.created_at
+        )
         with self.assertRaises(Exception) as context:
-            if self.mock_vote.latest_vote == -1 and self.mock_vote.action_type == -1:
-                self.assertEqual(f"{self.mock_user.username.title()}, "
-                                 f"you've already cast your vote!", str(context.exception))
-            elif self.mock_vote.latest_vote == 1:
-                if self.mock_vote.action_type == +1:
-                    self.assertEqual(f"{self.mock_user.username.title()}, "
-                                     f"you've already cast your vote!", str(context.exception))
+            self.assertEqual(f'{self.mock_user.username.title()}, '
+                             f'unfortunately, you can only re-vote within 3 hours', str(context.exception))
 
-    # TODO: 'Mock'
-    def test_validate_vote_can_vote(self):
-        """ Голосование можно +1 и -1 """
-        self.mock_vote.latest_vote = 0
-        if self.mock_vote.action_type == -1:
-            self.assertEqual(-1, self.instance.validate_vote())
-        if self.mock_vote.action_type == +1:
-            self.assertEqual(+1, self.instance.validate_vote())
+    def test_validate_vote_can_not_vote_alike(self):
+        """ Голосование -1 райзит ошибку, если мы изначально стояли на -1 """
+        previous_mock_vote = MockVote(
+            user=self.mock_user,
+            action_type=-1
+        )
+        self.instance = VotingCountSystem(
+            user=self.mock_user,
+            content_object=self.content_object,
+            action_type=-1,
+            _latest_vote=previous_mock_vote,
+        )
+        with self.assertRaises(Exception) as context:
+            self.assertEqual(f"{self.mock_user.username.title()}, "
+                             f"you've already cast your vote!", str(context.exception))
 
+        """ Голосование +1 райзит ошибку, если мы изначально стояли на +1 """
+        previous_mock_vote = MockVote(
+            user=self.mock_user,
+            action_type=+1
+        )
+        self.instance = VotingCountSystem(
+            user=self.mock_user,
+            content_object=self.content_object,
+            action_type=+1,
+            _latest_vote=previous_mock_vote,
+        )
+        with self.assertRaises(Exception) as context:
+            self.assertEqual(f"{self.mock_user.username.title()}, "
+                             f"you've already cast your vote!", str(context.exception))
 
+    def test_validate_vote_can_up_vote(self):
+        """ Голосование +1 с позиции -1 дает 0 """
 
+        previous_mock_vote = MockVote(
+            user=self.mock_user,
+            action_type=-1,
+            created_at=datetime.datetime.strptime(
+                '2022-03-27 10:25:48',
+                '%Y-%m-%d %H:%M:%S'
+            )
+        )
+        self.instance = VotingCountSystem(
+            user=self.mock_user,
+            content_object=self.content_object,
+            action_type=1,
+            _latest_vote=previous_mock_vote,
+        )
+        self.assertEqual(0, self.instance.validate_vote())
+
+        """ Голосование +1 с позиции 0 дает +1 """
+        previous_mock_vote = MockVote(
+            user=self.mock_user,
+            action_type=0,
+            created_at=datetime.datetime.strptime(
+                '2022-03-27 10:25:48',
+                '%Y-%m-%d %H:%M:%S'
+            )
+        )
+        self.instance = VotingCountSystem(
+            user=self.mock_user,
+            content_object=self.content_object,
+            action_type=-1,
+            _latest_vote=previous_mock_vote,
+        )
+        self.assertEqual(-1, self.instance.validate_vote())
+
+    def test_validate_vote_can_down_vote(self):
+        """ Голосование -1 с позиции +1 дает 0 """
+        previous_mock_vote = MockVote(
+            user=self.mock_user,
+            action_type=1,
+            created_at=datetime.datetime.strptime(
+                '2022-03-27 10:25:48',
+                '%Y-%m-%d %H:%M:%S'
+            )
+        )
+        self.instance = VotingCountSystem(
+            user=self.mock_user,
+            content_object=self.content_object,
+            action_type=-1,
+            _latest_vote=previous_mock_vote,
+        )
+        self.assertEqual(0, self.instance.validate_vote())
+
+        """ Голосование -1 с позиции 0 дает -1 """
+        previous_mock_vote = MockVote(
+            user=self.mock_user,
+            action_type=0,
+            created_at=datetime.datetime.strptime(
+                '2022-03-27 10:25:48',
+                '%Y-%m-%d %H:%M:%S'
+            )
+        )
+        self.instance = VotingCountSystem(
+            user=self.mock_user,
+            content_object=self.content_object,
+            action_type=-1,
+            _latest_vote=previous_mock_vote,
+        )
+        self.assertEqual(-1, self.instance.validate_vote())
+
+    def test_vote_count_active_calc(self):
+        """ Если прошлый голос был +1 а настоящий -1, то от общего значения отнимется 1 """
+        self.content_object = mock.Mock(id=self.object_id, user=self.mock_user,
+                                        vote_count=5)
+        previous_mock_vote = MockVote(
+            user=self.mock_user,
+            action_type=+1,
+            created_at=datetime.datetime.strptime(
+                '2022-03-27 10:25:48',
+                '%Y-%m-%d %H:%M:%S'
+            )
+        )
+        self.instance = VotingCountSystem(
+            user=self.mock_user,
+            content_object=self.content_object,
+            action_type=-1,
+            _latest_vote=previous_mock_vote,
+        )
+        self.assertEqual(self.content_object, self.instance.vote_count())
+
+        """ Если прошлый голос был -1 а настоящий +1, то к общему значению прибавится 1 """
+        self.content_object = mock.Mock(id=self.object_id, user=self.mock_user,
+                                        vote_count=5)
+        previous_mock_vote = MockVote(
+            user=self.mock_user,
+            action_type=-1,
+            created_at=datetime.datetime.strptime(
+                '2022-03-27 10:25:48',
+                '%Y-%m-%d %H:%M:%S'
+            )
+        )
+        self.instance = VotingCountSystem(
+            user=self.mock_user,
+            content_object=self.content_object,
+            action_type=+1,
+            _latest_vote=previous_mock_vote,
+        )
+        self.assertEqual(self.content_object, self.instance.vote_count())
+
+    def test_vote_count_passive_calc(self):
+        """ Если прошлый голос был +1 и настоящий тоже +1, то общее значение не изменится """
+        self.content_object = mock.Mock(id=self.object_id, user=self.mock_user,
+                                        vote_count=5)
+        previous_mock_vote = MockVote(
+            user=self.mock_user,
+            action_type=+1,
+            created_at=datetime.datetime.strptime(
+                '2022-03-27 10:25:48',
+                '%Y-%m-%d %H:%M:%S'
+            )
+        )
+        self.instance = VotingCountSystem(
+            user=self.mock_user,
+            content_object=self.content_object,
+            action_type=+1,
+            _latest_vote=previous_mock_vote,
+        )
+        self.assertEqual(self.content_object, self.instance.vote_count())
+
+        """ Если прошлый голос был -1 и настоящий тоже -1, то общее значение не изменится """
+        self.content_object = mock.Mock(id=self.object_id, user=self.mock_user,
+                                        vote_count=5)
+        previous_mock_vote = MockVote(
+            user=self.mock_user,
+            action_type=-1,
+            created_at=datetime.datetime.strptime(
+                '2022-03-27 10:25:48',
+                '%Y-%m-%d %H:%M:%S'
+            )
+        )
+        self.instance = VotingCountSystem(
+            user=self.mock_user,
+            content_object=self.content_object,
+            action_type=-1,
+            _latest_vote=previous_mock_vote,
+        )
+        self.assertEqual(self.content_object, self.instance.vote_count())
+
+    def test_execute(self):
+        """ RUN SYSTEM """
+
+        self.content_object = mock.Mock(id=self.object_id, user=self.mock_user,
+                                        vote_count=5)
+        previous_mock_vote = MockVote(
+            user=self.mock_user,
+            action_type=-1,
+            created_at=datetime.datetime.strptime(
+                '2022-03-27 14:25:48',
+                '%Y-%m-%d %H:%M:%S'
+            )
+        )
+        current_mock_vote = MockVote(
+            user=self.mock_user,
+            action_type=1,
+            created_at=datetime.datetime.strptime(
+                '2022-03-27 17:25:48',
+                '%Y-%m-%d %H:%M:%S'
+            )
+        )
+        self.instance = VotingCountSystem(
+            user=self.mock_user,
+            content_object=self.content_object,
+            action_type=1,
+            _latest_vote=previous_mock_vote,
+            current_time=current_mock_vote.created_at
+        )
+        execute = self.instance.execute()
+        self.assertEqual(0, execute)
 
 
 if __name__ == '__main__':

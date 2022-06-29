@@ -15,15 +15,23 @@ from .models import Vote
 class VotingCountSystem:
     """ Voting Count System Logic """
 
-    def __init__(self, user, content_object, action_type, content_type, object_id):
+    def __init__(
+            self,
+            user,
+            content_object: Vote | Answer | Question,
+            action_type: int,
+            content_type: Question | Answer = None,
+            object_id: int = None,
+            _latest_vote=None,
+            current_time: datetime = datetime.now(),
+    ):
         self.content_object = content_object
         self.action_type = action_type
         self.content_type = content_type
         self.object_id = object_id
         self.user = user
-        self.vote = 0
-        self.obj_votes = 0
-        self.update_obj = None
+        self._latest_vote = _latest_vote
+        self.current_time: datetime = current_time
 
     def validate_user(self):
         if self.user.rating < 50:
@@ -34,7 +42,7 @@ class VotingCountSystem:
 
     def validate_vote_create(self):
         if self.content_type == ContentType.objects.get_for_model(Question):
-            if (self.content_object.created_at + timedelta(hours=730)).timestamp() < datetime.now().timestamp():
+            if (self.content_object.created_at + timedelta(hours=730)).timestamp() < self.current_time.timestamp():
                 raise ValidationError(f'{self.user.username.title()}, '
                                       f'the time for voting for this question has expired. :( ')
             return f'{self.user.username.title()}, you can vote for this question.'
@@ -42,9 +50,10 @@ class VotingCountSystem:
             return f'{self.user.username.title()}, you can vote for this answer.'
 
     @property
-    def latest_vote(self):
-        result = self.content_object.vote.filter(user=self.user).latest('created_at')
-        return result
+    def latest_vote(self) -> Vote:
+        if not self._latest_vote:
+            return self.content_object.vote.filter(user=self.user).latest('created_at')
+        return self._latest_vote
 
     def validate_vote_update(self):
         try:
@@ -52,7 +61,7 @@ class VotingCountSystem:
         except ObjectDoesNotExist:
             return
         else:
-            if (latest_vote.created_at + timedelta(hours=3)).timestamp() < datetime.now().timestamp():
+            if (latest_vote.created_at + timedelta(hours=3)).timestamp() < self.current_time.timestamp():
                 raise ValidationError(f'{self.user.username.title()}, '
                                       f'unfortunately, you can only re-vote within 3 hours')
             return f'{self.user.username.title()}, you can re-vote'
@@ -60,9 +69,9 @@ class VotingCountSystem:
     def validate_vote(self):
         try:
             previous_vote = self.latest_vote
-            print(previous_vote)
+            print(f'"PREVIOUS" {previous_vote}')
             new_action_type = self.action_type
-            print(new_action_type)
+            print(f'"NEW" {new_action_type}')
             if int(previous_vote.action_type) == 1 and int(new_action_type) == -1:
                 self.action_type = 0
             if int(previous_vote.action_type) == -1 and int(new_action_type) == 1:
@@ -85,6 +94,7 @@ class VotingCountSystem:
         except ObjectDoesNotExist:
             self.content_object.vote_count += int(self.action_type)
         self.content_object.save()
+        print(self.content_object.vote_count)
         return self.content_object
 
     def execute(self):
@@ -99,9 +109,8 @@ class VotingCountSystem:
 class RatingUpdateSystem:
     """ Rating Count System Logic """
 
-    def __init__(self, data, user):
+    def __init__(self, user):
         self.user = user
-        self.data = data
         self.rating_power = 0
 
     def validate_user(self):
@@ -112,29 +121,43 @@ class RatingUpdateSystem:
             raise ValidationError(f'{self.user.username}, '
                                   f'your limit is {limit} record(s) per day')
 
-    def check_rank(self):
+    def check_role(self):
         """ User rating -> role logic """
-
         if self.user.rating < 100:
-            self.rating_power = 5
             self.user.role = NEWBIE
-        elif 100 < self.user.rating < 200:
-            self.rating_power = 10
+        elif 100 <= self.user.rating < 200:
             self.user.role = APPRENTICE
-        elif 200 < self.user.rating < 300:
-            self.rating_power = 15
+        elif 200 <= self.user.rating < 300:
             self.user.role = THINKER
-        elif 300 < self.user.rating < 400:
-            self.rating_power = 20
+        elif 300 <= self.user.rating < 400:
             self.user.role = MASTER
-        elif 400 < self.user.rating < 500:
-            self.rating_power = 25
+        elif 400 <= self.user.rating < 500:
             self.user.role = GENIUS
         else:
-            self.rating_power = 30
             self.user.role = HIGHER_INTELLIGENCE
-
-        self.user.rating += self.rating_power
-        print(self.rating_power)
         self.user.save()
-        return self.user
+        print(f'"SERVICES" {self.user.role}')
+        return self.user.role
+
+    def calculate_rating_power(self):
+        if self.user.rating < 100:
+            self.rating_power = 5
+        elif 100 <= self.user.rating < 200:
+            self.rating_power = 10
+        elif 200 <= self.user.rating < 300:
+            self.rating_power = 15
+        elif 300 <= self.user.rating < 400:
+            self.rating_power = 20
+        elif 400 <= self.user.rating < 500:
+            self.rating_power = 25
+        else:
+            self.rating_power = 30
+        self.user.rating += self.rating_power
+        self.user.save()
+        return self.user.rating
+
+    def execute(self):
+        """ RUN SYSTEM """
+        user_role = self.check_role()
+        user_rating = self.calculate_rating_power()
+        return user_role, user_rating
