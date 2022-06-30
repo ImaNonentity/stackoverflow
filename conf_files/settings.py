@@ -197,21 +197,17 @@ AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend',
                            # 'social.backends.linkedin.LinkedinOAuth2',
                            ]
 
-# EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_PORT = 587
-# EMAIL_HOST_USER = 'hellofrom.localstackoverflow@gmail.com'
-# EMAIL_HOST_PASSWORD = 'stackoverflow'
-# EMAIL_USE_TLS = True
-# DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.mailtrap.io'
+EMAIL_HOST_USER = '77e9a02c1f9b0f'
+EMAIL_HOST_PASSWORD = '75ed6d84cebbe4'
+EMAIL_PORT = '2525'
 
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_LOGIN_ON_PASSWORD_RESET = True
 ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE = True
 ACCOUNT_SESSION_REMEMBER = True
-
-ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 
 ACCOUNT_LOGOUT_REDIRECT_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
