@@ -18,7 +18,7 @@ class Vote(models.Model):
     )
     RATING_CHOICES_LIST_INT = [int(NO_VOTE), int(UPVOTE), int(DOWN_VOTE)]
     RATING_CHOICES_LIST_STR = [UPVOTE, DOWN_VOTE, NO_VOTE]
-    action_type = models.CharField(max_length=20, choices=rating_choice, default=0)
+    action_type = models.CharField(max_length=2, choices=rating_choice, default=0)
     user = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
     created_at = models.DateTimeField(auto_now=True)
     updated_at = models.DateTimeField(auto_now_add=True)

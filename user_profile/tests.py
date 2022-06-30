@@ -5,6 +5,8 @@ import django
 import os
 import unittest
 
+from .services import UserProfileService
+
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "conf_files.settings")
 django.setup()
 
@@ -19,7 +21,7 @@ class TestRatingServices(unittest.TestCase):
                                    rating=50,
                                    role=NEWBIE,
                                    return_value=None
-        )
+                                   )
 
     def test_check_rank_newbie(self):
         self.mock_user.rating = 50
@@ -93,10 +95,52 @@ class TestRatingServices(unittest.TestCase):
         rating_power = 30 + self.mock_user.rating
         self.assertEqual(rating_power, instance.calculate_rating_power())
 
-    def test_execute(self):
-        """ RUN SYSTEM """
-        self.mock_user.rating = 500
+    def test_validate_user_can_post_daily_records(self):
+        records = int(self.mock_user.role)
         instance = RatingUpdateSystem(self.mock_user)
-        rating_power = 30 + self.mock_user.rating
-        new_role = HIGHER_INTELLIGENCE
-        self.assertEqual((new_role, rating_power), instance.execute())
+        self.assertEqual(f'{self.mock_user.username}, you can create record!',
+                         instance.validate_user_records_per_day(records))
+
+    def test_validate_user_can_not_post_daily_records(self):
+        records = int(self.mock_user.role) + 1
+        instance = RatingUpdateSystem(user=self.mock_user)
+        with self.assertRaises(Exception) as context:
+            instance.validate_user_records_per_day(records)
+            self.assertEqual(f'{self.mock_user.username}, '
+                             f'your limit is {records} record(s) per day',
+                             str(context.exception))
+
+
+class TestUserProfileService(unittest.TestCase):
+
+    def setUp(self):
+        self.bonus_fields = mock.Mock(
+            birth_date=None,
+            profile_photo=None,
+            first_name=None,
+            last_name=None,
+        )
+        self.mock_user = mock.Mock(user='testuser',
+                                   rating=50,
+                                   role=NEWBIE,
+                                   profile_rating_bonuses=self.bonus_fields,
+                                   return_value=None,
+
+                                   )
+
+    def test_onetime_addon(self):
+        instance = UserProfileService(self.mock_user)
+        self.assertEqual(self.mock_user, instance.onetime_addon())
+
+    def test_save_profile_update(self):
+        self.bonus_fields.first_name = "Myname"
+        self.bonus_fields.last_name = "Mylastname"
+        self.mock_user = mock.Mock(user='testuser',
+                                   rating=50,
+                                   role=NEWBIE,
+                                   profile_rating_bonuses=self.bonus_fields,
+                                   return_value=None,
+                                   )
+        instance = UserProfileService(self.mock_user)
+        self.assertEqual(self.mock_user, instance.save_profile())
+

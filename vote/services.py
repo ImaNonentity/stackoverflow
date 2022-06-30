@@ -10,6 +10,12 @@ from datetime import datetime, date, time, timedelta, timezone
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from .models import Vote
+from .exceptions import (DailyValidationException,
+                         ValidationVoteException,
+                         ValidationReVoteTimeException,
+                         ValidationTimeCreateVoteException,
+                         ValidationUserRatingException
+                         )
 
 
 class VotingCountSystem:
@@ -35,16 +41,16 @@ class VotingCountSystem:
 
     def validate_user(self):
         if self.user.rating < 50:
-            raise serializers.ValidationError(f"{self.user.username.title()}, "
-                                              f"you can't vote until your rating reaches 50."
-                                              f" Your current rating is - {self.user.rating}.")
+            message = (f"{self.user.username.title()}, you can't vote until your rating reaches 50."
+                       f" Your current rating is - {self.user.rating}.")
+            raise ValidationUserRatingException(message)
         return
 
     def validate_vote_create(self):
         if self.content_type == ContentType.objects.get_for_model(Question):
             if (self.content_object.created_at + timedelta(hours=730)).timestamp() < self.current_time.timestamp():
-                raise ValidationError(f'{self.user.username.title()}, '
-                                      f'the time for voting for this question has expired. :( ')
+                message = f'{self.user.username.title()}, the time for voting for this question has expired. :( '
+                raise ValidationTimeCreateVoteException(message)
             return f'{self.user.username.title()}, you can vote for this question.'
         else:
             return f'{self.user.username.title()}, you can vote for this answer.'
@@ -62,23 +68,23 @@ class VotingCountSystem:
             return
         else:
             if (latest_vote.created_at + timedelta(hours=3)).timestamp() < self.current_time.timestamp():
-                raise ValidationError(f'{self.user.username.title()}, '
-                                      f'unfortunately, you can only re-vote within 3 hours')
+                message = f'{self.user.username.title()}, unfortunately, you can only re-vote within 3 hours'
+                raise ValidationReVoteTimeException(message)
             return f'{self.user.username.title()}, you can re-vote'
 
     def validate_vote(self):
         try:
             previous_vote = self.latest_vote
-            print(f'"PREVIOUS" {previous_vote}')
             new_action_type = self.action_type
-            print(f'"NEW" {new_action_type}')
             if int(previous_vote.action_type) == 1 and int(new_action_type) == -1:
+                print('Im here!')
                 self.action_type = 0
             if int(previous_vote.action_type) == -1 and int(new_action_type) == 1:
+                print('But now im here!')
                 self.action_type = 0
             if int(previous_vote.action_type) == int(new_action_type):
-                raise ValidationError(f"{self.user.username.title()}, "
-                                      f"you've already cast your vote!")
+                message = f"{self.user.username.title()}, you've already cast your vote!"
+                raise ValidationVoteException(message)
             current_vote = self.action_type
         except ObjectDoesNotExist:
             current_vote = self.action_type
@@ -87,14 +93,11 @@ class VotingCountSystem:
     def vote_count(self):
         try:
             latest_vote = self.latest_vote
-            if int(latest_vote.action_type) == int(self.action_type):
-                pass
             if int(latest_vote.action_type) != int(self.action_type):
                 self.content_object.vote_count += int(self.action_type)
         except ObjectDoesNotExist:
             self.content_object.vote_count += int(self.action_type)
         self.content_object.save()
-        print(self.content_object.vote_count)
         return self.content_object
 
     def execute(self):
@@ -113,13 +116,12 @@ class RatingUpdateSystem:
         self.user = user
         self.rating_power = 0
 
-    def validate_user(self):
-        today_records = Question.objects.filter(user=self.user,
-                                                created_at__date=date.today()).count()
+    def validate_user_records_per_day(self, today_records):
         if today_records > int(self.user.role):
             limit = int(self.user.role) + 1
-            raise ValidationError(f'{self.user.username}, '
-                                  f'your limit is {limit} record(s) per day')
+            message = f'{self.user.username},your limit is {limit} record(s) per day'
+            raise DailyValidationException(message)
+        return f'{self.user.username}, you can create record!'
 
     def check_role(self):
         """ User rating -> role logic """
@@ -136,7 +138,6 @@ class RatingUpdateSystem:
         else:
             self.user.role = HIGHER_INTELLIGENCE
         self.user.save()
-        print(f'"SERVICES" {self.user.role}')
         return self.user.role
 
     def calculate_rating_power(self):
@@ -158,6 +159,9 @@ class RatingUpdateSystem:
 
     def execute(self):
         """ RUN SYSTEM """
+        today_records = Question.objects.filter(user=self.user,
+                                                created_at__date=date.today()).count()
+        user_can_vote = self.validate_user_records_per_day(today_records)
         user_role = self.check_role()
         user_rating = self.calculate_rating_power()
-        return user_role, user_rating
+        return user_role, user_rating, user_can_vote

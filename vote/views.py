@@ -5,6 +5,9 @@ from rest_framework.permissions import IsAdminUser, AllowAny, IsAuthenticated
 from user_profile.permissions import IsOwnerUser, ReadOnly
 from rest_framework.views import APIView
 from rest_framework.response import Response
+
+from .exceptions import DailyValidationException, ValidationVoteException, ValidationReVoteTimeException, \
+    ValidationTimeCreateVoteException, ValidationUserRatingException
 from .models import Vote
 from .serializers import VoteOutputSerializer, VoteSerializer
 from .services import RatingUpdateSystem, VotingCountSystem
@@ -22,18 +25,25 @@ class VoteAddView(APIView):
                     'object_id': openapi.Schema(type=openapi.TYPE_STRING, description='string')})
     )
     def post(self, request):
-        serializer = VoteOutputSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        val_data = serializer.validated_data
-        count_system = VotingCountSystem(user=self.request.user,
-                                         content_object=val_data.get('content_object'),
-                                         content_type=val_data.get('content_type'),
-                                         object_id=val_data.get('object_id'),
-                                         action_type=val_data.get('action_type'))
-        vote_obj = count_system.execute()
-        serializer_data = VoteOutputSerializer(vote_obj)
-        serializer.save(user=request.user)
-        return Response(serializer_data.data, status=status.HTTP_201_CREATED)
+        try:
+            serializer = VoteOutputSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            val_data = serializer.validated_data
+            count_system = VotingCountSystem(user=self.request.user,
+                                             content_object=val_data.get('content_object'),
+                                             content_type=val_data.get('content_type'),
+                                             object_id=val_data.get('object_id'),
+                                             action_type=val_data.get('action_type'))
+            vote_int = count_system.execute()
+            serializer.save(user=request.user, action_type=vote_int)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except (DailyValidationException,
+                ValidationVoteException,
+                ValidationReVoteTimeException,
+                ValidationTimeCreateVoteException,
+                ValidationUserRatingException
+                ) as e:
+            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
 
 class VoteListView(APIView):
