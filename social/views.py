@@ -83,9 +83,8 @@ class QuestionCreateView(APIView):
     ))
     def post(self, request):
         serializer = CreateQuestionSerializer(data=request.data)
-        rating_system = RatingUpdateSystem(user=request.user, data=request.data)
-        rating_system.validate_user()
-        rating_system.check_rank()
+        rating_system = RatingUpdateSystem(user=request.user)
+        rating_system.execute()
         if serializer.is_valid():
             serializer.save(user=self.request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -176,8 +175,9 @@ class AnswerCreateView(APIView):
     def post(self, request):
         user = User.objects.get(pk=request.user.id)
         serializer = CreateAnswerSerializer(data=request.data)
-        rating_system = RatingUpdateSystem(user=request.user, data=request.data)
-        rating_system.check_rank()
+        rating_system = RatingUpdateSystem(user=request.user)
+        rating_system.check_role()
+        rating_system.calculate_rating_power()
         if serializer.is_valid():
             serializer.save(user=user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -237,8 +237,9 @@ class CommentCreateView(APIView):
     ))
     def post(self, request):
         serializer = CommentSerializer(data=request.data)
-        rating_system = RatingUpdateSystem(user=request.user, data=request.data)
-        rating_system.check_rank()
+        rating_system = RatingUpdateSystem(user=request.user)
+        rating_system.check_role()
+        rating_system.calculate_rating_power()
         if serializer.is_valid():
             serializer.save(user=self.request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)

@@ -13,8 +13,6 @@ from .services import VotingCountSystem
 CONTENT_TYPES_MODEL = ['question', 'answer']
 
 
-# TODO: 2 сериалайзера, один для аутпута, второй для инпута
-
 class VoteOutputSerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source='user.username')
     content_type = serializers.SlugRelatedField(queryset=ContentType.objects.filter(model__in=CONTENT_TYPES_MODEL),
@@ -25,7 +23,8 @@ class VoteOutputSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Vote
-        fields = ['id', 'user', 'object_id', 'content_type', 'action_type', 'created_at', 'updated_at']
+        fields = ['id', 'user', 'object_id', 'content_type',
+                  'action_type', 'created_at', 'updated_at']
 
     def validate(self, attrs):
         try:
@@ -42,12 +41,9 @@ class VoteOutputSerializer(serializers.ModelSerializer):
 
 
 class VoteSerializer(serializers.ModelSerializer):
-    user = serializers.ReadOnlyField(source='user.username')
     content_type = serializers.SlugRelatedField(queryset=ContentType.objects.filter(model__in=CONTENT_TYPES_MODEL),
                                                 slug_field='model')
     object_id = serializers.IntegerField()
-    action_type = serializers.IntegerField()
-    id = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Vote
