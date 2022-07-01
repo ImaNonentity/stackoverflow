@@ -5,6 +5,7 @@ import django
 import os
 import unittest
 
+from vote.exceptions import DailyValidationException
 from .services import UserProfileService
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "conf_files.settings")
@@ -104,43 +105,59 @@ class TestRatingServices(unittest.TestCase):
     def test_validate_user_can_not_post_daily_records(self):
         records = int(self.mock_user.role) + 1
         instance = RatingUpdateSystem(user=self.mock_user)
-        with self.assertRaises(Exception) as context:
+        with self.assertRaises(DailyValidationException) as context:
+            message = f'{self.mock_user.username},your limit is {records} record(s) per day'
             instance.validate_user_records_per_day(records)
-            self.assertEqual(f'{self.mock_user.username}, '
-                             f'your limit is {records} record(s) per day',
-                             str(context.exception))
+            self.assertEqual(message, str(context.exception))
 
 
 class TestUserProfileService(unittest.TestCase):
 
     def setUp(self):
-        self.bonus_fields = mock.Mock(
+        self.bonus_fields = dict(
             birth_date=None,
             profile_photo=None,
             first_name=None,
             last_name=None,
         )
-        self.mock_user = mock.Mock(user='testuser',
-                                   rating=50,
-                                   role=NEWBIE,
-                                   profile_rating_bonuses=self.bonus_fields,
-                                   return_value=None,
+        self.mock_user = mock.Mock(
+            user='testuser',
+            rating=50,
+            role=NEWBIE,
+            profile_rating_bonuses=self.bonus_fields,
+            return_value=None,
+            birth_date=None,
+            profile_photo=None,
+            first_name=None,
+            last_name=None,
+        )
 
-                                   )
+        self.new_photo_dir = "/example/photo/dir.jpg"
 
     def test_onetime_addon(self):
         instance = UserProfileService(self.mock_user)
-        self.assertEqual(self.mock_user, instance.onetime_addon())
+        expected_rating = int(self.mock_user.rating) + 15
+        self.assertEqual(expected_rating, instance.onetime_addon().rating)
 
-    def test_save_profile_update(self):
-        self.bonus_fields.first_name = "Myname"
-        self.bonus_fields.last_name = "Mylastname"
-        self.mock_user = mock.Mock(user='testuser',
-                                   rating=50,
-                                   role=NEWBIE,
-                                   profile_rating_bonuses=self.bonus_fields,
-                                   return_value=None,
-                                   )
+    def test_save_profile_update_birth_date(self):
+        self.mock_user.birth_date = "some birth date"
         instance = UserProfileService(self.mock_user)
-        self.assertEqual(self.mock_user, instance.save_profile())
+        expected_rating = int(self.mock_user.rating) + 15
+        self.assertEqual(expected_rating, instance.save_profile().rating)
+
+    def test_save_profile_update_full_name(self):
+        self.mock_user.first_name = "some first name"
+        self.mock_user.last_name = "some last name"
+        instance = UserProfileService(self.mock_user)
+        expected_rating = int(self.mock_user.rating) + 15 + 15
+        self.assertEqual(expected_rating, instance.save_profile().rating)
+
+    def test_save_profile_update_profile_photo(self):
+        self.mock_user.profile_photo = self.new_photo_dir
+        instance = UserProfileService(self.mock_user)
+        expected_rating = int(self.mock_user.rating) + 15
+        self.assertEqual(expected_rating, instance.save_profile().rating)
+
+
+
 

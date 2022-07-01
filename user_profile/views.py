@@ -11,6 +11,7 @@ from .permissions import IsOwnerUser, ReadOnly
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework.views import APIView
+from django.views.decorators.csrf import csrf_exempt
 
 from .serializers import UserAvatarSerializer, UserSerializer
 from .models import User
@@ -33,14 +34,14 @@ from drf_yasg.utils import swagger_auto_schema
 class UploadUserImageView(APIView):
     """ Upload User Avatar """
 
-    # permission_classes = [IsOwnerUser]
-    parser_classes = (MultiPartParser,)
+    parser_classes = [MultiPartParser]
+    permission_classes = [IsOwnerUser | IsAdminUser]
 
     @swagger_auto_schema(
         operation_description='Upload your avatar image',
         operation_id='Upload avatar file',
         manual_parameters=[openapi.Parameter(
-            name="file",
+            name="profile_photo",
             in_=openapi.IN_FORM,
             type=openapi.TYPE_FILE,
             required=True,
@@ -49,21 +50,25 @@ class UploadUserImageView(APIView):
         responses={400: 'Invalid data in uploaded file',
                    200: 'Success'},
     )
-    def put(self, request):
+    def post(self, request, pk):
         queryset = User.objects.get(pk=self.request.user.id)
-        serializer = UserAvatarSerializer(queryset, data=request.data)
+        serializer = UserAvatarSerializer(instance=queryset, data=request.data)
         if serializer.is_valid():
-            serializer.save(user=self.request.user)
+            serializer.update(instance=queryset, validated_data=serializer.validated_data)
+            us = UserProfileService(queryset)
+            # TODO: в сервисах добавлять рейтинг за аватар в save_profile
+            us.save_profile()
+            # self.check_object_permissions(request, request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-#     def post(self, request, *args, **kwargs):
-#         file = request.data['profile_photo']
-#         user = User.objects.get(pk=pk)
-#         user.profile_photo = file
-#         user.save()
-#         return Response("Image updated!", status=status.HTTP_200_OK)
+    # def post(self, request, *args, **kwargs):
+    #     file = request.data['profile_photo']
+    #     user = User.objects.get(pk=pk)
+    #     user.profile_photo = file
+    #     user.save()
+    #     return Response("Image updated!", status=status.HTTP_200_OK)
 
 
 class UserProfileUpdateView(APIView):
@@ -81,14 +86,13 @@ class UserProfileUpdateView(APIView):
             'last_name': openapi.Schema(type=openapi.TYPE_STRING, description='last_name'),
         }
     ))
-    def put(self, request, pk):
-        user = User.objects.get(id=pk)
-        serializer = UserSerializer(user, data=request.data)
+    def put(self, request):
+        serializer = UserSerializer(request.user, data=request.data)
         if serializer.is_valid():
-            serializer.save(user=user)
-            us = UserProfileService(user)
+            serializer.save(user=request.user)
+            us = UserProfileService(request.user)
             us.save_profile()
-            self.check_object_permissions(request, user)
+            self.check_object_permissions(request, request.user)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

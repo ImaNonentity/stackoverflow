@@ -55,6 +55,7 @@ class VotingCountSystem:
         else:
             return f'{self.user.username.title()}, you can vote for this answer.'
 
+    # TODO: @patch this in unittest
     @property
     def latest_vote(self) -> Vote:
         if not self._latest_vote:
@@ -77,10 +78,8 @@ class VotingCountSystem:
             previous_vote = self.latest_vote
             new_action_type = self.action_type
             if int(previous_vote.action_type) == 1 and int(new_action_type) == -1:
-                print('Im here!')
                 self.action_type = 0
             if int(previous_vote.action_type) == -1 and int(new_action_type) == 1:
-                print('But now im here!')
                 self.action_type = 0
             if int(previous_vote.action_type) == int(new_action_type):
                 message = f"{self.user.username.title()}, you've already cast your vote!"

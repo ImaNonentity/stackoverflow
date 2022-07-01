@@ -9,7 +9,6 @@ from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
 from django.db.models import JSONField
 
-from .services import uploading
 
 NEWBIE = '0'
 APPRENTICE = '1'
@@ -35,6 +34,12 @@ def profile_rating_bonuses():
         first_name=False,
         last_name=False
     )
+
+
+def uploading(instance, file):
+    """ Path to upload avatar file """
+
+    return f'profile_avatar/{instance.username}/{file}'
 
 
 class User(AbstractUser):

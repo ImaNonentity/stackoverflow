@@ -5,6 +5,9 @@ import django
 import os
 import unittest
 
+from vote.exceptions import ValidationUserRatingException, ValidationTimeCreateVoteException, \
+    ValidationReVoteTimeException, ValidationVoteException
+
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "conf_files.settings")
 django.setup()
 
@@ -12,6 +15,7 @@ from vote.services import VotingCountSystem
 from django.contrib.contenttypes.models import ContentType
 
 
+# TESTUSER
 class MockUser:
     def __init__(self, username, rating: int):
         self.username = username
@@ -59,14 +63,14 @@ class TestVoteServices(unittest.TestCase):
     def test_user_rating_validation_can_not_create_vote(self):
         """ Голосовать нельзя, если рейтинг меньше 50 """
         self.mock_user.rating = 20
-        VotingCountSystem.validate_user(self.mock_user)
         self.assertIsNot(self.mock_user.rating, 50)
         self.assertLess(self.mock_user.rating, 50)
-        with self.assertRaises(Exception) as context:
-            self.assertEqual(f"{self.mock_user.username.title()}, "
-                             f"you can't vote until your rating reaches 50."
-                             f" Your current rating is - {self.mock_user.rating}.",
-                             str(context.exception))
+        with self.assertRaises(ValidationUserRatingException) as context:
+            message = (f"{self.mock_user.username.title()},"
+                       f" you can't vote until your rating reaches 50."
+                       f" Your current rating is - {self.mock_user.rating}.")
+            self.instance.validate_user()
+            self.assertEqual(message, str(context.exception))
 
     def test_validate_vote_on_question_can_create(self):
         """ Отправлять первый голос можно, если вопросу не больше месяца """
@@ -79,9 +83,11 @@ class TestVoteServices(unittest.TestCase):
             '2022-03-27 15:25:48',
             '%Y-%m-%d %H:%M:%S'
         )
-        with self.assertRaises(Exception) as context:
-            self.assertEqual(f'{self.mock_user.username.title()}, '
-                             f'the time for voting for this question has expired. :( ', str(context.exception))
+        with self.assertRaises(ValidationTimeCreateVoteException) as context:
+            message = (f"{self.mock_user.username.title()},"
+                       f" the time for voting for this question has expired. :( ")
+            self.instance.validate_vote_create()
+            self.assertEqual(message, str(context.exception))
 
     def test_validate_vote_on_answer_can_create(self):
         """ Отправлять первый голос можно на ответ, без временного ограничения """
@@ -113,7 +119,6 @@ class TestVoteServices(unittest.TestCase):
         instance = self.instance.validate_vote_update()
         self.assertEqual(f'{self.mock_user.username.title()}, you can re-vote', instance)
 
-    # TODO: 'Mock' Answer | Question
     def test_validate_vote_can_not_update(self):
         """ Изменять свой голос нельзя, если ему больше 3х часов """
         previous_mock_vote = MockVote(
@@ -139,9 +144,11 @@ class TestVoteServices(unittest.TestCase):
             _latest_vote=previous_mock_vote,
             current_time=current_mock_vote.created_at
         )
-        with self.assertRaises(Exception) as context:
-            self.assertEqual(f'{self.mock_user.username.title()}, '
-                             f'unfortunately, you can only re-vote within 3 hours', str(context.exception))
+        with self.assertRaises(ValidationReVoteTimeException) as context:
+            message = (f'{self.mock_user.username.title()},'
+                       f' unfortunately, you can only re-vote within 3 hours')
+            self.instance.validate_vote_update()
+            self.assertEqual(message, str(context.exception))
 
     def test_validate_vote_can_not_vote_alike(self):
         """ Голосование -1 райзит ошибку, если мы изначально стояли на -1 """
@@ -155,9 +162,10 @@ class TestVoteServices(unittest.TestCase):
             action_type=-1,
             _latest_vote=previous_mock_vote,
         )
-        with self.assertRaises(Exception) as context:
-            self.assertEqual(f"{self.mock_user.username.title()}, "
-                             f"you've already cast your vote!", str(context.exception))
+        with self.assertRaises(ValidationVoteException) as context:
+            message = f"{self.mock_user.username.title()}, you've already cast your vote!"
+            self.instance.validate_vote()
+            self.assertEqual(message, str(context.exception))
 
         """ Голосование +1 райзит ошибку, если мы изначально стояли на +1 """
         previous_mock_vote = MockVote(
@@ -170,9 +178,10 @@ class TestVoteServices(unittest.TestCase):
             action_type=+1,
             _latest_vote=previous_mock_vote,
         )
-        with self.assertRaises(Exception) as context:
-            self.assertEqual(f"{self.mock_user.username.title()}, "
-                             f"you've already cast your vote!", str(context.exception))
+        with self.assertRaises(ValidationVoteException) as context:
+            message = f"{self.mock_user.username.title()}, you've already cast your vote!"
+            self.instance.validate_vote()
+            self.assertEqual(message, str(context.exception))
 
     def test_validate_vote_can_up_vote(self):
         """ Голосование +1 с позиции -1 дает 0 """
@@ -323,14 +332,19 @@ class TestVoteServices(unittest.TestCase):
         )
         self.assertEqual(self.content_object, self.instance.vote_count())
 
-    def test_execute(self):
+    # @mock.patch.object(VotingCountSystem, 'latest_vote')
+    # mock_latest_vote
+    def test_execute(self, ):
         """ RUN SYSTEM """
 
-        self.content_object = mock.Mock(id=self.object_id, user=self.mock_user,
-                                        vote_count=5)
+        self.content_object = mock.Mock(
+            id=self.object_id,
+            user=self.mock_user,
+            vote_count=5
+        )
         previous_mock_vote = MockVote(
             user=self.mock_user,
-            action_type=-1,
+            action_type=0,
             created_at=datetime.datetime.strptime(
                 '2022-03-27 14:25:48',
                 '%Y-%m-%d %H:%M:%S'
@@ -351,8 +365,9 @@ class TestVoteServices(unittest.TestCase):
             _latest_vote=previous_mock_vote,
             current_time=current_mock_vote.created_at
         )
+        # mock_latest_vote.return_value = 1
         execute = self.instance.execute()
-        self.assertEqual(0, execute)
+        self.assertEqual(current_mock_vote.action_type, execute)
 
 
 if __name__ == '__main__':
