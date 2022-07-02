@@ -132,8 +132,6 @@ class TestUserProfileService(unittest.TestCase):
             last_name=None,
         )
 
-        self.new_photo_dir = "/example/photo/dir.jpg"
-
     def test_onetime_addon(self):
         instance = UserProfileService(self.mock_user)
         expected_rating = int(self.mock_user.rating) + 15
