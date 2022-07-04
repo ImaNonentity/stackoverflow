@@ -1,5 +1,6 @@
 from unittest import mock
 import datetime
+from unittest.mock import patch
 
 import django
 import os
@@ -110,6 +111,17 @@ class TestRatingServices(unittest.TestCase):
             instance.validate_user_records_per_day(records)
             self.assertEqual(message, str(context.exception))
 
+    @patch.object(RatingUpdateSystem, 'today_records', 5)
+    def test_execute(self):
+        self.mock_user = mock.Mock(user='testuser',
+                                   rating=500,
+                                   role=HIGHER_INTELLIGENCE,
+                                   return_value=None
+                                   )
+        instance = RatingUpdateSystem(self.mock_user)
+        records_per_day = instance.validate_user_records_per_day(instance.today_records)
+        self.assertEqual((self.mock_user.role, self.mock_user.rating + 30, records_per_day), instance.execute())
+
 
 class TestUserProfileService(unittest.TestCase):
 
@@ -131,6 +143,8 @@ class TestUserProfileService(unittest.TestCase):
             first_name=None,
             last_name=None,
         )
+
+        self.new_photo_dir = "/example/photo/dir.jpg"
 
     def test_onetime_addon(self):
         instance = UserProfileService(self.mock_user)
@@ -155,7 +169,6 @@ class TestUserProfileService(unittest.TestCase):
         instance = UserProfileService(self.mock_user)
         expected_rating = int(self.mock_user.rating) + 15
         self.assertEqual(expected_rating, instance.save_profile().rating)
-
 
 
 

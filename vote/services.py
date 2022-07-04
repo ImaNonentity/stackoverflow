@@ -28,7 +28,6 @@ class VotingCountSystem:
             action_type: int,
             content_type: Question | Answer = None,
             object_id: int = None,
-            _latest_vote=None,
             current_time: datetime = datetime.now(),
     ):
         self.content_object = content_object
@@ -36,7 +35,6 @@ class VotingCountSystem:
         self.content_type = content_type
         self.object_id = object_id
         self.user = user
-        self._latest_vote = _latest_vote
         self.current_time: datetime = current_time
 
     def validate_user(self):
@@ -55,12 +53,9 @@ class VotingCountSystem:
         else:
             return f'{self.user.username.title()}, you can vote for this answer.'
 
-    # TODO: @patch this in unittest
     @property
     def latest_vote(self) -> Vote:
-        if not self._latest_vote:
-            return self.content_object.vote.filter(user=self.user).latest('created_at')
-        return self._latest_vote
+        return self.content_object.vote.filter(user=self.user).latest('created_at')
 
     def validate_vote_update(self):
         try:
@@ -114,6 +109,7 @@ class RatingUpdateSystem:
     def __init__(self, user):
         self.user = user
         self.rating_power = 0
+        self.rating_powers = []
 
     def validate_user_records_per_day(self, today_records):
         if today_records > int(self.user.role):
@@ -156,11 +152,14 @@ class RatingUpdateSystem:
         self.user.save()
         return self.user.rating
 
+    @property
+    def today_records(self):
+        return Question.objects.filter(user=self.user, created_at__date=date.today()).count()
+
     def execute(self):
         """ RUN SYSTEM """
-        today_records = Question.objects.filter(user=self.user,
-                                                created_at__date=date.today()).count()
-        user_can_vote = self.validate_user_records_per_day(today_records)
+        today_records = self.today_records
+        records_per_day = self.validate_user_records_per_day(today_records)
         user_role = self.check_role()
         user_rating = self.calculate_rating_power()
-        return user_role, user_rating, user_can_vote
+        return user_role, user_rating, records_per_day
