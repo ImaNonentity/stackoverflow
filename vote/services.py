@@ -5,7 +5,6 @@ from rest_framework.exceptions import ValidationError
 from rest_framework import status, serializers
 from user_profile.models import User, TITLES, NEWBIE, APPRENTICE, THINKER, MASTER, GENIUS, HIGHER_INTELLIGENCE
 from social.models import Question, Answer, Comment
-# import datetime
 from datetime import datetime, date, time, timedelta, timezone
 from django.db.models.signals import pre_save
 from django.dispatch import receiver

@@ -48,6 +48,7 @@ urlpatterns = [
     path('', include('user_profile.urls')),
     path('', include('social.urls')),
     path('', include('vote.urls')),
+    path('chat/', include('chat.urls')),
 
 ]
 

@@ -161,8 +161,6 @@ class TestVoteServices(unittest.TestCase):
                 self.instance.validate_vote_update()
                 self.assertEqual(message, str(context.exception))
 
-
-
     def test_validate_vote_can_not_vote_alike_negative(self):
         """ Голосование -1 райзит ошибку, если мы изначально стояли на -1 """
 

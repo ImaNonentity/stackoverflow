@@ -30,14 +30,11 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     # my apps
-    # 'stackoverflow.apps.StackoverflowConfig',
-    # 'user_profile.apps.UserProfileConfig',
-    # 'social.apps.SocialConfig',
-    # 'vote.apps.VoteConfig',
     'stackoverflow',
     'user_profile',
     'social',
     'vote',
+    'chat',
 
     # Django apps
     'django.contrib.admin',
@@ -46,9 +43,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
     'rest_framework',
     'rest_framework.authtoken',
+
+    'channels',
     'drf_yasg',
     'djoser',
     'allauth',
@@ -56,9 +54,6 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.linkedin_oauth2',
-    # 'rest_framework_swagger',
-    # 'knox',
-    # 'bootstrap5',
 ]
 
 MIDDLEWARE = [
@@ -95,6 +90,16 @@ TEMPLATES = [
 AUTH_USER_MODEL = 'user_profile.User'
 
 WSGI_APPLICATION = 'conf_files.wsgi.application'
+ASGI_APPLICATION = 'conf_files.asgi.application'
+
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels_redis.core.RedisChannelLayer",
+#         "CONFIG": {
+#             "hosts": ['redis://localhost:6379']
+#         }
+#     },
+# }
 
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
