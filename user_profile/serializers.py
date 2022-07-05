@@ -34,9 +34,7 @@ class UserAvatarSerializer(serializers.ModelSerializer):
         fields = ['profile_photo', ]
 
     def update(self, instance, validated_data):
-        print(validated_data)
         for (key, value) in validated_data.items():
-            print(instance, key, value)
             setattr(instance, key, value)
         instance.save()
         return instance

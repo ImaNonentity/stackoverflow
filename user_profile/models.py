@@ -56,7 +56,10 @@ class User(AbstractUser):
     REQUIRED_FIELDS = ['username']
 
     def __str__(self):
-        return f'{self.email}, {self.username}, id = {self.id}, your rank - {self.role}'
+        return f'{self.id}, {self.email}'
+
+    # def __str__(self):
+    #     return f'{self.email}, {self.username}, id = {self.id}, your rank - {self.role}'
 
     # @property
     # def questions(self):

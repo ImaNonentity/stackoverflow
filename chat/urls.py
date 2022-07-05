@@ -1,10 +1,11 @@
 from django.urls import path
 
 from . import views
-from .views import MessageSendView, MessagesView, SingleMessageDetailView
+from .views import MessageSendView, LastMessagesInRoomsView, SingleRoomMessagesView, index
 
 urlpatterns = [
-    path('room/<int:pk>/message/send', MessageSendView.as_view(), name='send_message'),
-    path('room/<int:pk>/message/list', MessagesView.as_view(), name='check_all_messages'),
-    path('room/<int:pk>/message/detail', SingleMessageDetailView.as_view(), name='check_message_details'),
+    path('index', index, name='index'),
+    path('room/message/send', MessageSendView.as_view(), name='send_message'),
+    path('message/list', LastMessagesInRoomsView.as_view(), name='check_last_messages'),
+    path('room/message', SingleRoomMessagesView.as_view(), name='check_messages_in_specific_room'),
 ]

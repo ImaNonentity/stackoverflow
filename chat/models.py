@@ -3,20 +3,24 @@ from django.db import models
 from user_profile.models import User
 
 
-class Room(models.Model):
-    name = models.CharField(max_length=255, null=False, blank=False, unique=True)
-    host = models.ForeignKey(User, on_delete=models.CASCADE, related_name="rooms")
-    current_users = models.ManyToManyField(User, related_name="current_rooms", blank=True)
-
-    def __str__(self):
-        return f"Room({self.name} {self.host})"
-
-
 class Message(models.Model):
-    room = models.ForeignKey("chat.Room", on_delete=models.CASCADE, related_name="messages")
     text = models.TextField(max_length=500)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="messages")
+    media_path = models.CharField(max_length=500, null=True, blank=True)
+    sender_id = models.ForeignKey(User, on_delete=models.PROTECT)
     created_at = models.DateTimeField(auto_now_add=True)
+    room = models.ForeignKey("chat.Room", on_delete=models.CASCADE, related_name="messages")
+
+    @property
+    def user(self):
+        return User.objects.get(pk=self.sender_id)
 
     def __str__(self):
-        return f"Message({self.user} {self.room})"
+        return f"Message({self.user} {self.text})"
+
+
+class Room(models.Model):
+    receiver_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name="receiver_id")
+    sender_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sender_id")
+
+    def __str__(self):
+        return f"Room(RECEIVER - {self.receiver_id}, SENDER - {self.sender_id})"

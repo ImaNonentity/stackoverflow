@@ -37,12 +37,13 @@ class VoteAddView(APIView):
             vote_int = count_system.execute()
             serializer.save(user=request.user, action_type=vote_int)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        except (DailyValidationException,
+        except (
+                DailyValidationException,
                 ValidationVoteException,
                 ValidationReVoteTimeException,
                 ValidationTimeCreateVoteException,
                 ValidationUserRatingException
-                ) as e:
+        ) as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
 
