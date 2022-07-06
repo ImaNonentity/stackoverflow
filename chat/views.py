@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.core import serializers
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.response import Response
@@ -7,27 +8,37 @@ from rest_framework.generics import ListAPIView
 from rest_framework.views import APIView
 
 from .models import Message, Room
-from .serializers import MessageSerializer, OutputMessageSerializer, RoomSerializer
+from .serializers import InputMessageSerializer, OutputMessageSerializer
 from .services import CreateMessageService, GetMessageService
 
 
-def index(request):
+def index_view(request):
     return render(request, 'chat/index.html')
+
+
+def room_view(request, room_name):
+    chat_room, created = Room.objects.get_or_create(name=room_name)
+    return render(request, 'room.html', {
+        'room': chat_room,
+    })
 
 
 class MessageSendView(APIView):
 
+    @swagger_auto_schema(request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={'receiver_id': openapi.Schema(type=openapi.TYPE_INTEGER, description='receiver_id'),
+                    'sender_id': openapi.Schema(type=openapi.TYPE_INTEGER, description='sender_id'),
+                    'text': openapi.Schema(type=openapi.TYPE_STRING, description='text')})
+    )
     def post(self, request):
-        serializer = MessageSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
         message_service = CreateMessageService(
-            sender_id=self.request.sender_id,
-            receiver_id=self.request.receiver_id,
-            created_at=self.request.created_at
+            sender_id=request.data['sender_id'],
+            receiver_id=request.data['receiver_id'],
+            text=request.data['text']
         )
         message = message_service.execute()
-        serializer.save(message=message)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializers.serialize('json', [message]), status=status.HTTP_200_OK)
 
 
 class LastMessagesInRoomsView(APIView):
@@ -41,6 +52,7 @@ class LastMessagesInRoomsView(APIView):
         )
         message = message_service.get_last_messages()
         serializer = OutputMessageSerializer(message, many=True)
+        print(request.query_params.get('sender_id'))
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -48,8 +60,8 @@ class SingleRoomMessagesView(APIView):
 
     def get(self, request):
         message_service = GetMessageService(
-            user_id=request.data['sender_id'],
+            user_id=request.query_params.get('sender_id'),
         )
-        message = message_service.get_room_messages(room=request.room)
+        message = message_service.get_room_messages(room=request.query_params.get('room'))
         serializer = OutputMessageSerializer(message)
         return Response(serializer.data, status=status.HTTP_200_OK)

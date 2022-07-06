@@ -1,6 +1,8 @@
 from datetime import datetime
 from django.db.models import Q
+
 from .models import Message, Room
+from user_profile.models import User
 
 
 class CreateMessageService:
@@ -9,28 +11,26 @@ class CreateMessageService:
             self,
             sender_id: int,
             receiver_id: int,
-            created_at: datetime,
+            created_at: datetime = None,
             text: str = None,
             media_path: str = None,
             content_type: str = None
     ):
-        self.sender_id = sender_id
-        self.receiver_id = receiver_id
-        self.created_at = created_at
+        self.sender_id = User.objects.get(pk=sender_id)
+        self.receiver_id = User.objects.get(pk=receiver_id)
+        self.created_at = datetime.now() if not created_at else created_at
         self.text = text
         self.media_path = media_path
         self.content_type = content_type
 
     def get_or_create_room(self) -> Room:
-        filters = (
-                Q(sender_id=self.sender_id, receiver_id=self.receiver_id) |
-                Q(sender_id=self.receiver_id, receiver_id=self.sender_id)
-        )
-        room = Room.objects.filter(*filters)
+        filters = Q(sender_id=self.sender_id, receiver_id=self.receiver_id) | \
+                  Q(sender_id=self.receiver_id, receiver_id=self.sender_id)
+        room = Room.objects.filter(filters)
         if not room:
             room = Room(
                 receiver_id=self.receiver_id,
-                sender_id=self.sender_id
+                sender_id=self.sender_id,
             )
             room.save()
         else:
@@ -75,7 +75,6 @@ class GetMessageService:
         response = dict()
         for room in rooms:
             messages = Message.objects.filter(room=room).order_by("created_at").last()
-            print(room.pk)
             response.update(**{str(room.pk): messages})
         return response
 
