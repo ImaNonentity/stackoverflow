@@ -92,14 +92,12 @@ AUTH_USER_MODEL = 'user_profile.User'
 WSGI_APPLICATION = 'conf_files.wsgi.application'
 ASGI_APPLICATION = 'conf_files.asgi.application'
 
-# CHANNEL_LAYERS = {
-#     "default": {
-#         "BACKEND": "channels_redis.core.RedisChannelLayer",
-#         "CONFIG": {
-#             "hosts": ['redis://localhost:6379']
-#         }
-#     },
-# }
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
 
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases

@@ -13,12 +13,14 @@ from .services import CreateMessageService, GetMessageService
 
 
 def index_view(request):
-    return render(request, 'chat/index.html')
+    return render(request, 'chat/index.html', {
+        'rooms': Room.objects.all(),
+    })
 
 
-def room_view(request, room_name):
-    chat_room, created = Room.objects.get_or_create(name=room_name)
-    return render(request, 'room.html', {
+def room_view(request, pk):
+    chat_room = Room.objects.get(pk=pk)
+    return render(request, 'chat/room.html', {
         'room': chat_room,
     })
 
@@ -52,7 +54,6 @@ class LastMessagesInRoomsView(APIView):
         )
         message = message_service.get_last_messages()
         serializer = OutputMessageSerializer(message, many=True)
-        print(request.query_params.get('sender_id'))
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 

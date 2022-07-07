@@ -74,10 +74,14 @@ class GetMessageService:
         rooms = self.get_user_rooms()
         response = dict()
         for room in rooms:
-            messages = Message.objects.filter(room=room).order_by("created_at").last()
-            response.update(**{str(room.pk): messages})
+            message = Message.objects.filter(room=room).order_by("created_at").last()
+            print(room, message)
+            response.update(**{str(room.pk): str(message)})
+
+        print(f'Response {response}')
         return response
 
     def get_room_messages(self, room: Room):
         messages = Message.objects.filter(room=room).order_by("-created_at").all()
+        print(f'"Messages" {messages}')
         return messages

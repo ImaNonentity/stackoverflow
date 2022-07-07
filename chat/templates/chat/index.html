@@ -1,56 +1,34 @@
+{% load static %}
+
 <!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8"/>
-  <title>Chat Rooms</title>
-</head>
-<body>
-<h4>Hi - <span id="username"></span></h4>
-<textarea id="chat-log" cols="100" rows="20"></textarea><br>
-<input id="chat-message-input" type="text" size="100"><br>
-<input id="chat-message-submit" type="button" value="Send">
-{{ room_name|json_script:"room-name" }}
-<script
-    src="https://code.jquery.com/jquery-3.6.0.min.js"
-    integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
-    crossorigin="anonymous"></script>
-
-<script>
- const roomName = JSON.parse(document.getElementById('room').textContent);
-
-  const chatSocket = new WebSocket(
-            'ws://'
-            + window.location.host
-            + '/ws/chat/'
-            + room
-            + '/'
-        );
-
-        chatSocket.onmessage = function(e) {
-            const data = JSON.parse(e.data);
-            document.querySelector('#chat-log').value += (data.message + '\n');
-        };
-
-        chatSocket.onclose = function(e) {
-            console.error('Chat socket closed unexpectedly');
-        };
-
-        document.querySelector('#chat-message-input').focus();
-        document.querySelector('#chat-message-input').onkeyup = function(e) {
-            if (e.keyCode === 13) {  // enter, return
-                document.querySelector('#chat-message-submit').click();
-            }
-        };
-
-        document.querySelector('#chat-message-submit').onclick = function(e) {
-            const messageInputDom = document.querySelector('#chat-message-input');
-            const message = messageInputDom.value;
-            chatSocket.send(JSON.stringify({
-                'message': message
-            }));
-            messageInputDom.value = '';
-        };
-    </script>
-</body>
+<html lang="en">
+    <head>
+        <title>django-channels-chat</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"></script>
+    </head>
+    <body>
+        <div class="container mt-3 p-5">
+            <h2>Stackoverflow-channels-chat</h2>
+            <div class="row">
+                <div class="col-12 col-md-8">
+                    <div class="mb-2">
+                        <label for="roomInput">Enter a room id to connect to it:</label>
+                        <input type="text" class="form-control" id="roomInput" placeholder="Room ID">
+                    </div>
+                    <button type="button" id="roomConnect" class="btn btn-success">Connect</button>
+                </div>
+                <div class="col-12 col-md-4">
+                    <label for="roomSelect">Active rooms</label>
+                    <select multiple class="form-control" id="roomSelect">
+                        {% for room in rooms %}
+                            <option>{{ room }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+        <script src="{% static 'index.js' %}"></script>
+    </body>
 </html>
 

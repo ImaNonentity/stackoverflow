@@ -7,7 +7,8 @@ from user_profile.serializers import SimpleUserSerializer
 class OutputMessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
-        fields = ['user']
+        fields = ['sender_id']
+        depth = 1
 
 
 class InputMessageSerializer(serializers.ModelSerializer):
