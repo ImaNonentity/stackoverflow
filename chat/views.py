@@ -1,3 +1,6 @@
+from django.contrib.messages.storage.cookie import MessageSerializer
+from rest_framework import permissions
+from django.core.handlers.asgi import ASGIRequest
 from django.shortcuts import render
 from django.core import serializers
 from drf_yasg import openapi
@@ -18,7 +21,7 @@ def index_view(request):
     })
 
 
-def room_view(request, pk):
+def room_view(request: ASGIRequest, pk):
     chat_room = Room.objects.get(pk=pk)
     return render(request, 'chat/room.html', {
         'room': chat_room,
@@ -53,16 +56,18 @@ class LastMessagesInRoomsView(APIView):
             user_id=request.query_params.get('sender_id'),
         )
         message = message_service.get_last_messages()
-        serializer = OutputMessageSerializer(message, many=True)
+        serializer = OutputMessageSerializer(message)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class SingleRoomMessagesView(APIView):
+    permission_classes = [permissions.AllowAny]
 
+    room_param = openapi.Parameter('room', in_=openapi.IN_QUERY, description='Room ID',
+                                   type=openapi.TYPE_STRING, )
+
+    @swagger_auto_schema(manual_parameters=[room_param])
     def get(self, request):
-        message_service = GetMessageService(
-            user_id=request.query_params.get('sender_id'),
-        )
-        message = message_service.get_room_messages(room=request.query_params.get('room'))
-        serializer = OutputMessageSerializer(message)
+        messages = Message.objects.filter(room=request.query_params.get('room')).order_by("-created_at").all()
+        serializer = OutputMessageSerializer(messages, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

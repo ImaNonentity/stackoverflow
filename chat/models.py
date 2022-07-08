@@ -11,10 +11,10 @@ class Message(models.Model):
     room = models.ForeignKey("chat.Room", on_delete=models.CASCADE, related_name="messages")
 
     def __str__(self):
-        return f"Message({self.sender_id} {self.text})"
+        return f"Message {self.id} ({self.sender_id} {self.text})"
 
     def __repr__(self):
-        return f"Message({self.sender_id} {self.text})"
+        return f"Message {self.id} ({self.sender_id} {self.text})"
 
 
 class Room(models.Model):

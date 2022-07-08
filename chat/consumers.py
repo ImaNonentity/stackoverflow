@@ -6,7 +6,7 @@ from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 
 from chat.models import Room, Message
-from chat.services import CreateMessageService
+from chat.services import CreateMessageService, GetMessageService
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
@@ -28,7 +28,12 @@ class ChatConsumer(WebsocketConsumer):
             self.room_name,
             self.channel_name
         )
+        message_service = GetMessageService(
+            user_id=self.user,
+        )
+        messages = message_service.get_room_messages(self.room_name)
         self.accept()
+        return messages
 
     def receive(self, text_data=None, bytes_data=None):
         self.send(text_data="Message from server to client")
@@ -42,13 +47,21 @@ class ChatConsumer(WebsocketConsumer):
                 'message': msg
             }
         )
-        Message.objects.create(sender_id=self.user, room=self.room, text=msg)
+        # Message.objects.create(sender_id=self.user, room=self.room, text=msg)
+        receiver = self.room.receiver_id if self.room.receiver_id != self.user else self.room.sender_id
+        message_service = CreateMessageService(
+            sender_id=self.user.id,
+            receiver_id=receiver.id,
+            text=msg
+        )
+        message_service.execute()
 
     def chat_message(self, event):
         print("Event...", event)
         self.send(text_data=json.dumps({
             'message': event['message'],
-            'type': event['type']
+            'type': event['type'],
+            'user': event['user'],
         }))
 
     def disconnect(self, close_code):

@@ -1,9 +1,36 @@
 console.log("Sanity check from room.js.");
 
+async function postData(url = '', data = {}) {
+  // Default options are marked with *
+  const response = await fetch(url, {
+    method: 'GET', // *GET, POST, PUT, DELETE, etc.
+    mode: 'no-cors', // no-cors, *cors, same-origin
+    cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+    credentials: 'same-origin', // include, *same-origin, omit
+    headers: {
+      'Content-Type': 'application/json'  // 'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    redirect: 'follow', // manual, *follow, error
+    referrerPolicy: 'no-referrer', // no-referrer, *client
+    // body: JSON.stringify(data) // body data type must match "Content-Type" header
+  });
+  let result = await response;
+  console.log(result);
+    //  return await response.json(); // parses JSON response into native JavaScript objects
+}
+
 const roomName = window.location.pathname.split("/").filter(e=>e)[1];
-console.log(roomName)
+
+async function getRoomMessageHistory(roomName) {
+    await postData('http://localhost:8000/chat/room/message?room=' + roomName)
+      .then((data) => {
+        console.log(data); // JSON data parsed by `response.json()` call
+      });
+}
 
 let chatLog = document.querySelector("#chatLog");
+chatLog.value += "user1" + ": " + "message1" + "\n";
+let history = getRoomMessageHistory(roomName)
 let chatMessageInput = document.querySelector("#chatMessageInput");
 let chatMessageSend = document.querySelector("#chatMessageSend");
 
@@ -17,36 +44,10 @@ chatMessageInput.onkeyup = function(e) {
     }
 };
 
-//async function postData(url = '', data = {}) {
-//  // Default options are marked with *
-//  const response = await fetch(url, {
-//    method: 'POST', // *GET, POST, PUT, DELETE, etc.
-//    mode: 'cors', // no-cors, *cors, same-origin
-//    cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
-//    credentials: 'same-origin', // include, *same-origin, omit
-//    headers: {
-//      'Content-Type': 'application/json'
-//      // 'Content-Type': 'application/x-www-form-urlencoded',
-//    },
-//    redirect: 'follow', // manual, *follow, error
-//    referrerPolicy: 'no-referrer', // no-referrer, *client
-//    body: JSON.stringify(data) // body data type must match "Content-Type" header
-//  });
-//  return await response.json(); // parses JSON response into native JavaScript objects
-//}
-
-
 // clear the 'chatMessageInput' and forward the message
 chatMessageSend.onclick = function() {
     if (chatMessageInput.value.length === 0) return;
     console.log("message SENT")
-//    postData('http://localhost:8000/chat/room/message/send', {
-//      "receiver_id": 1,
-//      "sender_id": 9,
-//      "text": "HELLO"
-//    }).then((data) => {
-//    console.log(data); // JSON data parsed by `response.json()` call
-//    });
     chatSocket.send(JSON.stringify({
     "message": chatMessageInput.value,
 }));
@@ -70,9 +71,9 @@ function connect() {
         }, 2000);
     };
 
-    chatSocket.onmessage = function(event) {
-        const data = JSON.parse(event.data);
-        console.log(data.user);
+    chatSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        console.log("DATA " + e.data);
         switch (data.type) {
             case "chat_message":
                 chatLog.value += data.user + ": " + data.message + "\n";
